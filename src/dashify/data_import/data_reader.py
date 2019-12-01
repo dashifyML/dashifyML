@@ -12,7 +12,7 @@ class Experiment:
 
     @property
     def config(self):
-        return self.config
+        return self._config
 
     @config.setter
     def config(self, value):
