@@ -1,6 +1,7 @@
 import argparse
-from dashify.visualization.tabs import *
 import dashify
+from dashify.visualization.app import app
+from dashify.visualization.layout_definition import layout
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Visualize grid search experiments')
@@ -15,4 +16,5 @@ def parse_args():
 
 if __name__ == '__main__':
     dashify.visualization.log_dir = parse_args()
+    app.layout = layout
     app.run_server(debug=True)
