@@ -1,7 +1,7 @@
 from dashify.data_import.data_reader import GridSearchLoader
 import collections
 import pandas as pd
-
+from typing import List, Dict
 
 class DataTable:
     def __init__(self, gs_loader: GridSearchLoader):
@@ -10,7 +10,7 @@ class DataTable:
         experiment_ids = gs_loader.get_experiment_ids()
         self.flattened_configs = [DataTable.flatten_dict(gs_loader.get_experiment(experiment_id).config) for experiment_id in
                              experiment_ids]
-        flattened_metrics = [DataTable.flatten_dict(gs_loader.get_experiment(experiment_id).metrics) for experiment_id
+        self.flattened_metrics = [DataTable.flatten_dict(gs_loader.get_experiment(experiment_id).metrics) for experiment_id
                              in
                              experiment_ids]
 
@@ -24,6 +24,12 @@ class DataTable:
             else:
                 items.append((new_key, v))
         return dict(items)
+
+    def get_config_columns(self):
+        return list(set(key for config in self.flattened_configs for key in config))
+
+    def get_metrics_columns(self):
+        return list(set(key for metrics in self.flattened_metrics for key in metrics))
 
     def to_pandas_data_frame(self) -> pd.DataFrame:
         return pd.DataFrame(self.flattened_configs)
