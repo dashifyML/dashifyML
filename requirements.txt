@@ -1,2 +1,4 @@
 dash
 dash-bootstrap-components
+dash_daq
+Flask-Caching

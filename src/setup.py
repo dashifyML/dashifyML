@@ -6,7 +6,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         "dash",
-        "dash-bootstrap-components"
+        "dash-bootstrap-components",
+        "dash_daq",
+        "Flask-Caching"
     ],
     python_requires="3.0"
 )
