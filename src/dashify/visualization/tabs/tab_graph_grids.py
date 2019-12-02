@@ -4,7 +4,6 @@ from dash.dependencies import Input, Output, State
 import os
 from dashify.data_import.data_reader import GridSearchLoader, Experiment
 from typing import List, Dict
-from dashify.visualization.layout_definition import app
 import operator
 from functools import reduce
 from dashify.visualization import Settings

@@ -1,29 +1,36 @@
-import dash
 from dash.dependencies import Input, Output
 import dash_table
-import pandas as pd
-from dashify.visualization.layout_definition import app
 from dashify.data_import.data_table import DataTable
 from dashify.data_import.data_reader import GridSearchLoader
 from dashify.visualization import Settings
+from dashify.visualization.app import app
+import pandas as pd
+from typing import List, Dict
+from dashify.visualization.storage.in_memory import server_storage
 
 
-gs_loader = GridSearchLoader(Settings.log_dir)
-
-
-df = DataTable(gs_loader).to_pandas_data_frame()
-
-def render_table():
+def render_table(session_id: str):
+    gs_loader = GridSearchLoader(Settings.log_dir)
+    df = DataTable(gs_loader).to_pandas_data_frame()
+    config_cols = server_storage.get(session_id, "Configs")
+    metric_cols = server_storage.get(session_id, "Metrics")
+    df = filter_columns(df, config_cols, metric_cols)
 
     return dash_table.DataTable(
         id='table-filtering-be',
         columns=[
             {"name": i, "id": i} for i in sorted(df.columns)
         ],
-
         filter_action='custom',
         filter_query=''
     )
+
+def filter_columns(df: pd.DataFrame, config_cols: List[str], metric_cols: List[str]) -> pd.DataFrame:
+    columns = config_cols + metric_cols
+    columns = [column for column in columns if column in df.columns] # keep only those columns that are already in the data frame
+    return df[columns]
+
+
 
 operators = [['ge ', '>='],
              ['le ', '<='],
@@ -58,28 +65,24 @@ def split_filter_part(filter_part):
 
     return [None] * 3
 
-
 @app.callback(
     Output('table-filtering-be', "data"),
     [Input('table-filtering-be', "filter_query")])
 def update_table(filter):
     filtering_expressions = filter.split(' && ')
-    dff = df
+    gs_loader = GridSearchLoader(Settings.log_dir)
+    df = DataTable(gs_loader).to_pandas_data_frame()
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)
 
         if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
             # these operators match pandas series operator method names
-            dff = dff.loc[getattr(dff[col_name], operator)(filter_value)]
+            df = df.loc[getattr(df[col_name], operator)(filter_value)]
         elif operator == 'contains':
-            dff = dff.loc[dff[col_name].str.contains(filter_value)]
+            df = df.loc[df[col_name].str.contains(filter_value)]
         elif operator == 'datestartswith':
             # this is a simplification of the front-end filtering logic,
             # only works with complete fields in standard format
-            dff = dff.loc[dff[col_name].str.startswith(filter_value)]
+            df = df.loc[df[col_name].str.startswith(filter_value)]
 
-    return dff.to_dict('records')
-
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
+    return df.to_dict('records')
