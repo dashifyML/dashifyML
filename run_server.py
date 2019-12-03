@@ -3,6 +3,7 @@ import dashify
 from dashify.visualization.app import app
 from dashify.visualization.layout_definition import layout
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Visualize grid search experiments')
     parser.add_argument('--logdir', type=str, help='Path tho the grid search root directory')
