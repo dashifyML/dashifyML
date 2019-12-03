@@ -2,7 +2,6 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 from dashify.visualization.app import app
 from dashify.visualization.tabs.tab_graph_grids import render_graphs
-from dashify.visualization import Settings
 from dashify.visualization.tabs.tab_gridsearch_table import render_table
 from dashify.visualization.tabs.tab_settings import render_settings
 
