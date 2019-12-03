@@ -1,7 +1,7 @@
 import argparse
 import dashify
 from dashify.visualization.app import app
-from dashify.visualization.layout_definition import layout
+from dashify.visualization.layout_definition import get_layout
 
 
 def parse_args():
@@ -16,6 +16,5 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    dashify.visualization.log_dir = parse_args()
-    app.layout = layout
+    app.layout = get_layout(parse_args())
     app.run_server(debug=True)

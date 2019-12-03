@@ -1,6 +1,5 @@
 from dashify.data_import.data_table import DataTable
 from dashify.data_import.data_reader import GridSearchLoader
-from dashify.visualization import Settings
 import dash_html_components as html
 from typing import List
 from dash.dependencies import Input, Output
