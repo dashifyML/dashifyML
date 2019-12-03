@@ -2,15 +2,14 @@ from dash.dependencies import Input, Output
 import dash_table
 from dashify.data_import.data_table import DataTable
 from dashify.data_import.data_reader import GridSearchLoader
-from dashify.visualization import Settings
 from dashify.visualization.app import app
 import pandas as pd
 from typing import List, Dict
 from dashify.visualization.storage.in_memory import server_storage
 
 
-def render_table(session_id: str):
-    gs_loader = GridSearchLoader(Settings.log_dir)
+def render_table(session_id: str, log_dir: str):
+    gs_loader = GridSearchLoader(log_dir)
     df = DataTable(gs_loader).to_pandas_data_frame()
     config_cols = server_storage.get(session_id, "Configs")
     metric_cols = server_storage.get(session_id, "Metrics")
@@ -24,6 +23,7 @@ def render_table(session_id: str):
         filter_action='custom',
         filter_query=''
     )
+
 
 def filter_columns(df: pd.DataFrame, config_cols: List[str], metric_cols: List[str]) -> pd.DataFrame:
     columns = config_cols + metric_cols
@@ -67,10 +67,10 @@ def split_filter_part(filter_part):
 
 @app.callback(
     Output('table-filtering-be', "data"),
-    [Input('table-filtering-be', "filter_query")])
-def update_table(filter):
+    [Input('table-filtering-be', "filter_query"), Input("hidden-log-dir", "children")])
+def update_table(filter, log_dir):
     filtering_expressions = filter.split(' && ')
-    gs_loader = GridSearchLoader(Settings.log_dir)
+    gs_loader = GridSearchLoader(log_dir)
     df = DataTable(gs_loader).to_pandas_data_frame()
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)

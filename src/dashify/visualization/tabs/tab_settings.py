@@ -9,11 +9,11 @@ from dashify.visualization.app import app
 from dashify.visualization.storage.in_memory import server_storage
 
 
-gs_loader = GridSearchLoader(Settings.log_dir)
-data_table = DataTable(gs_loader)
+def render_settings(session_id: str, log_dir):
 
+    gs_loader = GridSearchLoader(log_dir)
+    data_table = DataTable(gs_loader)
 
-def render_settings(session_id: str):
     config_settings = create_settings(session_id, data_table.get_config_columns(), "Configs")
     metrics_settings = create_settings(session_id, data_table.get_metrics_columns(), "Metrics")
     content = html.Div(children=[html.H3("What to track?"), html.Div(children=[config_settings, metrics_settings], className="row")])

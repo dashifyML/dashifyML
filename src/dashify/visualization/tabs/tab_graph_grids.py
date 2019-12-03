@@ -6,7 +6,6 @@ from dashify.data_import.data_reader import GridSearchLoader, Experiment
 from typing import List, Dict
 import operator
 from functools import reduce
-from dashify.visualization import Settings
 
 
 def render_graphs(log_dir: str):
