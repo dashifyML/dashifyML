@@ -8,7 +8,6 @@ from dashify.visualization.app import app
 from dashify.visualization.storage.in_memory import server_storage
 import dash_table
 import pandas as pd
-from collections import OrderedDict
 
 
 def render_settings(session_id: str, log_dir):
@@ -43,16 +42,18 @@ def create_metrics_settings_table(metrics_keys: List[str]):
     df = pd.DataFrame.from_dict({"metrics": metrics_keys})
     df["Selected"] = "y"
     df["Aggregation"] = agg_fun_list[0]
+    df["Ci_band"] = "y"
 
     table = html.Div([
             html.H5("Metrics"),
             dash_table.DataTable(
-                id='table-dropdown',
+                id='table-metrics',
                 data=df.to_dict('records'),
                 columns=[
                     {'id': 'metrics', 'name': 'metrics'},
                     {'id': 'Selected', 'name': 'Selected', 'presentation': 'dropdown'},
                     {'id': 'Aggregation', 'name': 'Aggregation', 'presentation': 'dropdown'},
+                    {'id': 'Ci_band', 'name': 'Ci_band', 'presentation': 'dropdown'},
                 ],
 
                 editable=True,
@@ -68,6 +69,12 @@ def create_metrics_settings_table(metrics_keys: List[str]):
                             {'label': i, 'value': i}
                             for i in agg_fun_list
                         ]
+                    },
+                    'Ci_band': {
+                        'options': [
+                            {'label': i, 'value': i}
+                            for i in ["y", "n"]
+                        ]
                     }
                 }
             ),
@@ -79,8 +86,11 @@ def create_metrics_settings_table(metrics_keys: List[str]):
 
 @app.callback(
     Output('hidden-div-placeholder', "children"),
-    [Input('Configs', "value"), Input('Metrics', "value"), Input("session-id", "children")])
-def settings_callback(selected_configs, selected_metrics, session_id):
+    [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'), Input('table-metrics', 'columns')])
+def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
+    # store config
     server_storage.insert(session_id, "Configs", selected_configs)
-    server_storage.insert(session_id, "Metrics", selected_metrics)
+    # store metrics
+    df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
+    server_storage.insert(session_id, "Metrics", df)
     return html.Div("")

@@ -32,5 +32,5 @@ class DataTable:
         return list(set(key for metrics in self.flattened_metrics for key in metrics))
 
     def to_pandas_data_frame(self) -> pd.DataFrame:
-        return pd.DataFrame(self.flattened_configs)
+        return pd.concat([pd.DataFrame(self.flattened_configs), pd.DataFrame(self.flattened_metrics)], axis=1)
 
