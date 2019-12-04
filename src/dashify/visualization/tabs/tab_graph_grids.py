@@ -90,8 +90,19 @@ def is_ci_selected(metrics_df, metric_tag):
         return False
 
 
+def is_metric_selected(metrics_df, metric_tag):
+    if metrics_df[metrics_df["metrics"] == metric_tag]["Selected"].iloc[0] == "y":
+        return True
+    else:
+        return False
+
+
 def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame) -> List[dcc.Graph]:
     metric_tags = gs_loader.get_experiment(gs_loader.get_experiment_ids()[0]).metrics.keys()
+
+    # filter the metrics based on selection
+    metric_tags = [metric_tag for metric_tag in metric_tags if is_metric_selected(metrics_df, metric_tag)]
+
     return [
         create_graph_with_ci(metric_tag, gs_loader) if is_ci_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
 
