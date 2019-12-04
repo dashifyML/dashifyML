@@ -6,6 +6,9 @@ from dashify.data_import.data_reader import GridSearchLoader, Experiment
 from typing import List, Dict
 import operator
 from functools import reduce
+import numpy as np
+import scipy.stats
+import plotly.graph_objs as go
 
 
 def render_graphs(log_dir: str):
@@ -76,10 +79,10 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
 
 def create_graphs(gs_loader: GridSearchLoader) -> List[dcc.Graph]:
     metric_tags = gs_loader.get_experiment(gs_loader.get_experiment_ids()[0]).metrics.keys()
-    return [create_graph(metric_tag, gs_loader) for metric_tag in metric_tags]
+    return [create_graph_with_ci(metric_tag, gs_loader) for metric_tag in metric_tags]
 
 
-def create_graph(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
+def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
     def prepare_single_data_series(experiment: Experiment, metric_tag: str) -> Dict:
         y = experiment.metrics[metric_tag]
         series = {"x": list(range(len(y))), 'y': y, 'type': 'linear', 'name': experiment.identifier}
@@ -100,3 +103,81 @@ def create_graph(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
         }
     )
     return g
+
+
+def create_graph_with_ci(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
+
+    def prepare_data(metric_tag: str, gs_loader: GridSearchLoader) -> List:
+        experiment_ids = gs_loader.get_experiment_ids()
+        return [gs_loader.get_experiment(experiment_id).metrics[metric_tag] for experiment_id in experiment_ids]
+
+    # aggregate data from all experiments
+    data = np.array(prepare_data(metric_tag, gs_loader))
+
+    # find confidence intervals
+    mean, lower_bound, upper_bound = mean_confidence_interval(data)
+
+    g = dcc.Graph(
+        id=metric_tag,
+        figure=get_ci_figure(metric_tag, mean, lower_bound, upper_bound)
+    )
+    return g
+
+
+def get_ci_figure(title, mean_data, lcb_data, ucb_data):
+    x = np.arange(mean_data.shape[0])
+    upper_bound = go.Scatter(
+        name='Upper Bound',
+        x=x,
+        y=ucb_data,
+        mode='lines',
+        marker=dict(color="#444"),
+        line=dict(width=0),
+        fillcolor='rgba(68, 68, 68, 0.3)',
+        fill='tonexty')
+
+    trace = go.Scatter(
+        name='Measurement',
+        x=x,
+        y=mean_data,
+        mode='lines',
+        line=dict(color='rgb(31, 119, 180)'),
+        fillcolor='rgba(68, 68, 68, 0.3)',
+        fill='tonexty')
+
+    lower_bound = go.Scatter(
+        name='Lower Bound',
+        x=x,
+        y=lcb_data,
+        marker=dict(color="#444"),
+        line=dict(width=0),
+        mode='lines')
+
+    # Trace order can be important
+    # with continuous error bars
+    data = [lower_bound, trace, upper_bound]
+
+    layout = go.Layout(
+        yaxis=dict(),
+        title=title,
+        showlegend=False)
+
+    fig = go.Figure(data=data, layout=layout)
+    return fig
+
+
+def mean_confidence_interval(data, confidence=0.95):
+    n = data.shape[0]
+    m, se = np.mean(data, axis=0), scipy.stats.sem(data, axis=0)
+    h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
+
+    # must check if it is a negative quantity
+    neg = data[data<0]
+    if neg.shape[0] > 0:
+        # contains negative elements
+        return m, m-h, m+h
+    else:
+        # clip the lower bound to zero
+        lcb = m-h
+        lcb[lcb <= 0] = 0
+        return m, lcb, m+h
