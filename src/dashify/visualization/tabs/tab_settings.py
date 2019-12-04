@@ -42,7 +42,7 @@ def create_metrics_settings_table(metrics_keys: List[str]):
     df = pd.DataFrame.from_dict({"metrics": metrics_keys})
     df["Selected"] = "y"
     df["Aggregation"] = agg_fun_list[0]
-    df["Ci_band"] = "y"
+    df["Ci_band"] = "n"
 
     table = html.Div([
             html.H5("Metrics"),

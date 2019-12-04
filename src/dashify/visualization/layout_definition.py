@@ -47,7 +47,7 @@ def render_content(tab, session_id, log_dir):
             render_table(session_id, log_dir)
         ])
     elif tab == 'tab-graphs':
-        return html.Div(children=render_graphs(log_dir), id="graph-grids")
+        return html.Div(children=render_graphs(session_id, log_dir), id="graph-grids")
 
 # TABLE TAB STUFF
 

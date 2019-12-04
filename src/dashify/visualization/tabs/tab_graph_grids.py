@@ -3,17 +3,23 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import os
 from dashify.data_import.data_reader import GridSearchLoader, Experiment
+from dashify.visualization.storage.in_memory import server_storage
 from typing import List, Dict
 import operator
 from functools import reduce
 import numpy as np
 import scipy.stats
 import plotly.graph_objs as go
+from pandas import DataFrame
 
 
-def render_graphs(log_dir: str):
+def render_graphs(session_id: str, log_dir: str):
+
+    # determine the metrics to be displayed in the graph
+    metrics_df = server_storage.get(session_id, "Metrics")
+
     gs_loader = GridSearchLoader(log_dir)
-    graphs = create_graphs(gs_loader)
+    graphs = create_graphs(gs_loader, metrics_df)
     graph_groups = create_graph_groups(graphs)
     grids = create_grids(graph_groups)
 
@@ -77,9 +83,17 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
-def create_graphs(gs_loader: GridSearchLoader) -> List[dcc.Graph]:
+def is_ci_selected(metrics_df, metric_tag):
+    if metrics_df[metrics_df["metrics"] == metric_tag]["Ci_band"].iloc[0] == "y":
+        return True
+    else:
+        return False
+
+
+def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame) -> List[dcc.Graph]:
     metric_tags = gs_loader.get_experiment(gs_loader.get_experiment_ids()[0]).metrics.keys()
-    return [create_graph_with_ci(metric_tag, gs_loader) for metric_tag in metric_tags]
+    return [
+        create_graph_with_ci(metric_tag, gs_loader) if is_ci_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
 
 
 def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
@@ -115,7 +129,7 @@ def create_graph_with_ci(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Gr
     data = np.array(prepare_data(metric_tag, gs_loader))
 
     # find confidence intervals
-    mean, lower_bound, upper_bound = mean_confidence_interval(data)
+    mean, lower_bound, upper_bound = get_confidence_interval(data)
 
     g = dcc.Graph(
         id=metric_tag,
@@ -133,7 +147,6 @@ def get_ci_figure(title, mean_data, lcb_data, ucb_data):
         mode='lines',
         marker=dict(color="#444"),
         line=dict(width=0),
-        fillcolor='rgba(68, 68, 68, 0.3)',
         fill='tonexty')
 
     trace = go.Scatter(
@@ -142,7 +155,6 @@ def get_ci_figure(title, mean_data, lcb_data, ucb_data):
         y=mean_data,
         mode='lines',
         line=dict(color='rgb(31, 119, 180)'),
-        fillcolor='rgba(68, 68, 68, 0.3)',
         fill='tonexty')
 
     lower_bound = go.Scatter(
@@ -166,7 +178,7 @@ def get_ci_figure(title, mean_data, lcb_data, ucb_data):
     return fig
 
 
-def mean_confidence_interval(data, confidence=0.95):
+def get_confidence_interval(data, confidence=0.95):
     n = data.shape[0]
     m, se = np.mean(data, axis=0), scipy.stats.sem(data, axis=0)
     h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
@@ -177,7 +189,7 @@ def mean_confidence_interval(data, confidence=0.95):
         # contains negative elements
         return m, m-h, m+h
     else:
-        # clip the lower bound to zero
+        # clip the lower bound to zero if not
         lcb = m-h
         lcb[lcb <= 0] = 0
         return m, lcb, m+h
