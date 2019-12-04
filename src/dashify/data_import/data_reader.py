@@ -41,6 +41,8 @@ class GridSearchLoader:
         config_paths = glob.glob(os.path.join(grid_search_path, "**/config.json"), recursive=True)
         metric_paths = glob.glob(os.path.join(grid_search_path, "**/metrics.json"), recursive=True)
 
+        self.check_integrity_of_logs(config_paths, metric_paths)
+
         # load configs and metrics into dictionaries (experiment_id -> loaded_resource)
         configs = {self.resource_path_to_experiment_id(config_path): self._load_file(resource_path=config_path) for
                    config_path in config_paths}
@@ -52,6 +54,15 @@ class GridSearchLoader:
                                                       metrics=metrics[experiment_id],
                                                       identifier=experiment_id)
                             for experiment_id in configs.keys()}
+
+
+    def check_integrity_of_logs(self, configs, metrics):
+        experiments_configs = [os.path.dirname(c) for c in configs]
+        experiments_metrics = [os.path.dirname(m) for m in metrics]
+        intersection = [e for e in experiments_metrics if e in experiments_configs]
+        if len(intersection) != len(experiments_configs) or len(intersection) != len(experiments_metrics):
+            raise Exception("Dataset corrupt!!!")
+
 
     def _load_file(self, resource_path: str):
         with open(resource_path, "r") as f:

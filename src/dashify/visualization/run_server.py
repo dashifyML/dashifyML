@@ -16,5 +16,6 @@ def parse_args():
 
 
 if __name__ == '__main__':
-    app.layout = get_layout(parse_args())
+    log_dir = parse_args()
+    app.layout = get_layout(log_dir)
     app.run_server(debug=True)
