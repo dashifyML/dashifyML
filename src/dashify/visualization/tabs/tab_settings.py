@@ -42,7 +42,7 @@ def create_metrics_settings_table(metrics_keys: List[str]):
     df = pd.DataFrame.from_dict({"metrics": metrics_keys})
     df["Selected"] = "y"
     df["Aggregation"] = agg_fun_list[0]
-    df["Ci_band"] = "n"
+    df["Std_band"] = "n"
 
     table = html.Div([
             html.H5("Metrics"),
@@ -53,7 +53,7 @@ def create_metrics_settings_table(metrics_keys: List[str]):
                     {'id': 'metrics', 'name': 'metrics'},
                     {'id': 'Selected', 'name': 'Selected', 'presentation': 'dropdown'},
                     {'id': 'Aggregation', 'name': 'Aggregation', 'presentation': 'dropdown'},
-                    {'id': 'Ci_band', 'name': 'Ci_band', 'presentation': 'dropdown'},
+                    {'id': 'Std_band', 'name': 'Std_band', 'presentation': 'dropdown'},
                 ],
 
                 editable=True,
@@ -70,7 +70,7 @@ def create_metrics_settings_table(metrics_keys: List[str]):
                             for i in agg_fun_list
                         ]
                     },
-                    'Ci_band': {
+                    'Std_band': {
                         'options': [
                             {'label': i, 'value': i}
                             for i in ["y", "n"]

@@ -83,8 +83,8 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
-def is_ci_selected(metrics_df, metric_tag):
-    if metrics_df[metrics_df["metrics"] == metric_tag]["Ci_band"].iloc[0] == "y":
+def is_std_selected(metrics_df, metric_tag):
+    if metrics_df[metrics_df["metrics"] == metric_tag]["Std_band"].iloc[0] == "y":
         return True
     else:
         return False
@@ -104,7 +104,7 @@ def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame) -> List[dc
     metric_tags = [metric_tag for metric_tag in metric_tags if is_metric_selected(metrics_df, metric_tag)]
 
     return [
-        create_graph_with_ci(metric_tag, gs_loader) if is_ci_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
+        create_graph_with_std(metric_tag, gs_loader) if is_std_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
 
 
 def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
@@ -123,14 +123,14 @@ def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) ->
         figure={
             'data': prepare_data(metric_tag, gs_loader),
             'layout': {
-                'title': metric_tag
+                'title': metric_tag,
             }
         }
     )
     return g
 
 
-def create_graph_with_ci(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
+def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
 
     def prepare_data(metric_tag: str, gs_loader: GridSearchLoader) -> List:
         experiment_ids = gs_loader.get_experiment_ids()
@@ -140,67 +140,57 @@ def create_graph_with_ci(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Gr
     data = np.array(prepare_data(metric_tag, gs_loader))
 
     # find confidence intervals
-    mean, lower_bound, upper_bound = get_confidence_interval(data)
+    mean, lower_bound, upper_bound = get_deviations(data)
 
     g = dcc.Graph(
         id=metric_tag,
-        figure=get_ci_figure(metric_tag, mean, lower_bound, upper_bound)
+        figure=get_std_figure(metric_tag, mean, lower_bound, upper_bound)
     )
     return g
 
 
-def get_ci_figure(title, mean_data, lcb_data, ucb_data):
+def get_std_figure(title, mean_data, lcb_data, ucb_data):
     x = np.arange(mean_data.shape[0])
     upper_bound = go.Scatter(
         name='Upper Bound',
         x=x,
         y=ucb_data,
         mode='lines',
-        marker=dict(color="#444"),
-        line=dict(width=0),
         fill='tonexty')
 
     trace = go.Scatter(
-        name='Measurement',
+        name='Average Value',
         x=x,
         y=mean_data,
         mode='lines',
-        line=dict(color='rgb(31, 119, 180)'),
         fill='tonexty')
 
     lower_bound = go.Scatter(
         name='Lower Bound',
         x=x,
         y=lcb_data,
-        marker=dict(color="#444"),
-        line=dict(width=0),
         mode='lines')
 
     # Trace order can be important
     # with continuous error bars
     data = [lower_bound, trace, upper_bound]
 
-    layout = go.Layout(
-        yaxis=dict(),
-        title=title,
-        showlegend=False)
+    fig = go.Figure(data=data, layout={
+        'plot_bgcolor': '#ffffff',
+        'showlegend': False
+    })
 
-    fig = go.Figure(data=data, layout=layout)
+    # center the title
+    fig.update_layout(
+        title={
+            'text': title,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'})
+
     return fig
 
 
-def get_confidence_interval(data, confidence=0.95):
-    n = data.shape[0]
-    m, se = np.mean(data, axis=0), scipy.stats.sem(data, axis=0)
-    h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
-
-    # must check if it is a negative quantity
-    neg = data[data<0]
-    if neg.shape[0] > 0:
-        # contains negative elements
-        return m, m-h, m+h
-    else:
-        # clip the lower bound to zero if not
-        lcb = m-h
-        lcb[lcb <= 0] = 0
-        return m, lcb, m+h
+def get_deviations(data):
+    m, sd = np.mean(data, axis=0), np.std(data, axis=0)
+    return m, m-sd, m+sd
