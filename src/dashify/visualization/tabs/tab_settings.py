@@ -13,15 +13,16 @@ import pandas as pd
 def render_settings(session_id: str, log_dir):
     gs_loader = GridSearchLoader(log_dir)
     data_table = DataTable(gs_loader)
-    config_settings = create_settings(session_id, data_table.get_config_columns(), "Configs")
+    config_settings = create_configs_settings(session_id, data_table.get_config_columns())
     metrics_keys = data_table.get_metrics_columns()
-    metrics_settings_table = create_metrics_settings_table(metrics_keys)
+    metrics_settings_table = create_metrics_settings_table(session_id, metrics_keys)
     content = html.Div(
         children=[html.H3("What to track?"), html.Div([config_settings, metrics_settings_table], className="row")])
     return content
 
 
-def create_settings(session_id: str, keys: List[str], settings_type: str):
+def create_configs_settings(session_id: str, keys: List[str]):
+    settings_type = "Configs"
     keys.sort()
     options = [{'label': key, 'value': key} for key in keys]
     selected_elements = server_storage.get(session_id, settings_type)
@@ -37,25 +38,27 @@ def create_settings(session_id: str, keys: List[str], settings_type: str):
     return settings
 
 
-def create_metrics_settings_table(metrics_keys: List[str]):
+def create_metrics_settings_table(session_id: str, metrics_keys: List[str]):
+    settings_type = "Metrics"
     agg_fun_list = ["min", "mean", "max"]
-    df = pd.DataFrame.from_dict({"metrics": metrics_keys})
-    df["Selected"] = "y"
-    df["Aggregation"] = agg_fun_list[0]
-    df["Std_band"] = "n"
+    df_metrics_settings = server_storage.get(session_id, settings_type)
+    if df_metrics_settings is None:
+        df_metrics_settings = pd.DataFrame.from_dict({"metrics": metrics_keys})
+        df_metrics_settings["Selected"] = "y"
+        df_metrics_settings["Aggregation"] = agg_fun_list[0]
+        df_metrics_settings["Std_band"] = "n"
 
     table = html.Div([
             html.H5("Metrics"),
             dash_table.DataTable(
                 id='table-metrics',
-                data=df.to_dict('records'),
+                data=df_metrics_settings.to_dict('records'),
                 columns=[
                     {'id': 'metrics', 'name': 'metrics'},
                     {'id': 'Selected', 'name': 'Selected', 'presentation': 'dropdown'},
                     {'id': 'Aggregation', 'name': 'Aggregation', 'presentation': 'dropdown'},
                     {'id': 'Std_band', 'name': 'Std_band', 'presentation': 'dropdown'},
                 ],
-
                 editable=True,
                 dropdown={
                     'Selected': {
