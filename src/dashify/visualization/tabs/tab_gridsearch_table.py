@@ -10,6 +10,25 @@ import numpy as np
 
 
 def render_table(session_id: str, log_dir: str):
+    df_gs_table = load_gridsearch_table(session_id, log_dir)
+    filters = get_filters(session_id)
+    return dash_table.DataTable(
+        id='table-filtering-be',
+        columns=[
+            {"name": i, "id": i} for i in sorted(df_gs_table.columns)
+        ],
+        filter_action='custom',
+        filter_query=filters
+    )
+
+
+def load_gridsearch_table(session_id: str, log_dir: str) -> pd.DataFrame:
+    df_gs_table = server_storage.get(session_id, "grid_search_table")
+    if df_gs_table is None:
+        df_gs_table = load_gridsearch_table_from_disc(session_id, log_dir)
+    return df_gs_table
+
+def load_gridsearch_table_from_disc(session_id: str, log_dir: str) -> pd.DataFrame:
     # load data from disk
     gs_loader = GridSearchLoader(log_dir)
     df_gs_table = DataTable(gs_loader).to_pandas_data_frame()
@@ -17,14 +36,17 @@ def render_table(session_id: str, log_dir: str):
     config_cols = server_storage.get(session_id, "Configs")
     metrics_df = server_storage.get(session_id, "Metrics")
     df_gs_table = process_gridsearch_table_dataframe(df_gs_table, config_cols, metrics_df)
-    return dash_table.DataTable(
-        id='table-filtering-be',
-        columns=[
-            {"name": i, "id": i} for i in sorted(df_gs_table.columns)
-        ],
-        filter_action='custom',
-        filter_query=''
-    )
+    # make the experiment id index a column as well
+    df_gs_table = df_gs_table.reset_index()
+    return df_gs_table
+
+
+def get_filters(session_id: str):
+    filters = server_storage.get(session_id, "grid_search_table_filters")
+    if filters is None:
+        return ''
+    return filters
+
 
 def process_gridsearch_table_dataframe(df_gs_table, config_cols, metrics_df):
     # filter those columns in the dataframe
@@ -35,6 +57,7 @@ def process_gridsearch_table_dataframe(df_gs_table, config_cols, metrics_df):
     # apply aggregation function to the respective columns in the grid search table
     df_gs_table = apply_aggregation_functions(df_gs_table, df_selected_metrics)
     return df_gs_table
+
 
 def filter_columns(df: pd.DataFrame, config_cols: List[str], metric_cols: List[str]) -> pd.DataFrame:
     columns = config_cols + metric_cols
@@ -81,20 +104,15 @@ def split_filter_part(filter_part):
                 # word operators need spaces after them in the filter string,
                 # but we don't want these later
                 return name, operator_type[0].strip(), value
-
     return [None] * 3
+
 
 @app.callback(
     Output('table-filtering-be', "data"),
     [Input('table-filtering-be', "filter_query"), Input("hidden-log-dir", "children"), Input("session-id", "children")])
 def update_table(filter, log_dir, session_id):
     filtering_expressions = filter.split(' && ')
-    gs_loader = GridSearchLoader(log_dir)
-    df_gs_table = DataTable(gs_loader).to_pandas_data_frame()
-    # determine the columns to be displayed in the table
-    config_cols = server_storage.get(session_id, "Configs")
-    metrics_df = server_storage.get(session_id, "Metrics")
-    df_gs_table = process_gridsearch_table_dataframe(df_gs_table, config_cols, metrics_df)
+    df_gs_table = load_gridsearch_table_from_disc(session_id, log_dir)
 
     for filter_part in filtering_expressions:
         col_name, operator, filter_value = split_filter_part(filter_part)
@@ -108,5 +126,9 @@ def update_table(filter, log_dir, session_id):
             # this is a simplification of the front-end filtering logic,
             # only works with complete fields in standard format
             df_gs_table = df_gs_table.loc[df_gs_table[col_name].str.startswith(filter_value)]
+
+    # store filtered grid search table and filters
+    server_storage.insert(session_id, "grid_search_table", df_gs_table)
+    server_storage.insert(session_id, "grid_search_table_filters", filter)
 
     return df_gs_table.to_dict('records')

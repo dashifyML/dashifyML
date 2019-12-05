@@ -1,6 +1,5 @@
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
 import os
 from dashify.data_import.data_reader import GridSearchLoader, Experiment
 from dashify.visualization.storage.in_memory import server_storage
@@ -8,7 +7,6 @@ from typing import List, Dict
 import operator
 from functools import reduce
 import numpy as np
-import scipy.stats
 import plotly.graph_objs as go
 from pandas import DataFrame
 

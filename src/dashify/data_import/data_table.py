@@ -7,12 +7,12 @@ class DataTable:
     def __init__(self, gs_loader: GridSearchLoader):
         self.gs_loader = gs_loader
 
-        experiment_ids = gs_loader.get_experiment_ids()
+        self.experiment_ids = gs_loader.get_experiment_ids()
         self.flattened_configs = [DataTable.flatten_dict(gs_loader.get_experiment(experiment_id).config) for experiment_id in
-                             experiment_ids]
+                             self.experiment_ids]
         self.flattened_metrics = [DataTable.flatten_dict(gs_loader.get_experiment(experiment_id).metrics) for experiment_id
                              in
-                             experiment_ids]
+                             self.experiment_ids]
 
     @staticmethod
     def flatten_dict(d, parent_key='', sep='/'):
@@ -32,5 +32,8 @@ class DataTable:
         return list(set(key for metrics in self.flattened_metrics for key in metrics))
 
     def to_pandas_data_frame(self) -> pd.DataFrame:
-        return pd.concat([pd.DataFrame(self.flattened_configs), pd.DataFrame(self.flattened_metrics)], axis=1)
-
+        df = pd.concat([pd.DataFrame(self.experiment_ids, columns=["experiment_id"]),
+                         pd.DataFrame(self.flattened_configs),
+                         pd.DataFrame(self.flattened_metrics)], axis=1)
+        df = df.set_index("experiment_id")
+        return df

@@ -1,7 +1,6 @@
 import json
 import glob
 import os
-from typing import List, Dict
 
 
 class Experiment:
@@ -55,14 +54,12 @@ class GridSearchLoader:
                                                       identifier=experiment_id)
                             for experiment_id in configs.keys()}
 
-
     def check_integrity_of_logs(self, configs, metrics):
         experiments_configs = [os.path.dirname(c) for c in configs]
         experiments_metrics = [os.path.dirname(m) for m in metrics]
         intersection = [e for e in experiments_metrics if e in experiments_configs]
         if len(intersection) != len(experiments_configs) or len(intersection) != len(experiments_metrics):
             raise Exception("Dataset corrupt!!!")
-
 
     def _load_file(self, resource_path: str):
         with open(resource_path, "r") as f:
