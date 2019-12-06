@@ -154,6 +154,9 @@ def get_std_figure(title, mean_data, lcb_data, ucb_data):
         x=x,
         y=ucb_data,
         mode='lines',
+        marker=dict(color="#444"),
+        line=dict(width=0),
+        fillcolor='rgba(68, 68, 68, 0.3)',
         fill='tonexty')
 
     trace = go.Scatter(
@@ -161,12 +164,16 @@ def get_std_figure(title, mean_data, lcb_data, ucb_data):
         x=x,
         y=mean_data,
         mode='lines',
+        line=dict(color='rgb(31, 119, 180)'),
+        fillcolor='rgba(68, 68, 68, 0.3)',
         fill='tonexty')
 
     lower_bound = go.Scatter(
         name='Lower Bound',
         x=x,
         y=lcb_data,
+        marker=dict(color="#444"),
+        line=dict(width=0),
         mode='lines')
 
     # Trace order can be important
