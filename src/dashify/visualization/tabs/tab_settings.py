@@ -13,9 +13,10 @@ import pandas as pd
 def render_settings(session_id: str, log_dir):
     gs_loader = GridSearchLoader(log_dir)
     data_table = DataTable(gs_loader)
-    config_settings = create_configs_settings(session_id, data_table.get_config_columns())
+    params = data_table.get_config_columns()
+    config_settings = create_configs_settings(session_id, params)
     metrics_keys = data_table.get_metrics_columns()
-    metrics_settings_table = create_metrics_settings_table(session_id, metrics_keys)
+    metrics_settings_table = create_metrics_settings_table(session_id, metrics_keys, params)
     content = html.Div(
         children=[html.H3("What to track?"), html.Div([config_settings, metrics_settings_table], className="row")])
     return content
@@ -38,7 +39,7 @@ def create_configs_settings(session_id: str, keys: List[str]):
     return settings
 
 
-def create_metrics_settings_table(session_id: str, metrics_keys: List[str]):
+def create_metrics_settings_table(session_id: str, metrics_keys: List[str], config_params: List[str]):
     settings_type = "Metrics"
     agg_fun_list = ["min", "mean", "max"]
     df_metrics_settings = server_storage.get(session_id, settings_type)
@@ -47,6 +48,7 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str]):
         df_metrics_settings["Selected"] = "y"
         df_metrics_settings["Aggregation"] = agg_fun_list[0]
         df_metrics_settings["Std_band"] = "n"
+        df_metrics_settings["Grouping parameter)"] = config_params[0]
 
     table = html.Div([
             html.H5("Metrics"),
@@ -58,6 +60,7 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str]):
                     {'id': 'Selected', 'name': 'Selected', 'presentation': 'dropdown'},
                     {'id': 'Aggregation', 'name': 'Aggregation', 'presentation': 'dropdown'},
                     {'id': 'Std_band', 'name': 'Std_band', 'presentation': 'dropdown'},
+                    {'id': 'Grouping parameter', 'name': 'Grouping parameter', 'presentation': 'dropdown'},
                 ],
                 editable=True,
                 dropdown={
@@ -78,11 +81,17 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str]):
                             {'label': i, 'value': i}
                             for i in ["y", "n"]
                         ]
+                    },
+                    'Analyze_by_parameter': {
+                        'options': [
+                            {'label': i, 'value': i}
+                            for i in config_params
+                        ]
                     }
                 }
             ),
             html.Div(id='table-dropdown-container')
-        ], className="four columns"
+        ], className="five columns"
     )
     return table
 
