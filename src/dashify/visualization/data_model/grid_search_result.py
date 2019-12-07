@@ -1,5 +1,6 @@
 from dashify.visualization.data_model.experiment import Experiment
 from typing import List
+import collections
 
 
 class GridSearchResult:
@@ -28,6 +29,41 @@ class GridSearchResult:
         :return: List[experiment_id]
         """
         return [experiment.identifier for experiment in self.experiments]
+
+    def get_flattened_experiment_configs(self) -> List[str]:
+        """
+        Returns a list of all flattened config keys present in the grid search
+        :return: List of flattened config keys
+        """
+        flattened_config_keys = []
+        for experiment in self.experiments:
+            keys = list(GridSearchResult._flatten_dict(experiment.config).keys())
+            flattened_config_keys = flattened_config_keys + keys
+        return list(set(flattened_config_keys))
+
+    def get_experiment_metrics(self) -> List[str]:
+        """
+        Returns a list of all metric keys present in the grid search
+        :return: List of metric keys
+        """
+        metrics_keys = []
+        for experiment in self.experiments:
+            keys = list(experiment.metrics.keys())
+            metrics_keys = metrics_keys + keys
+        return list(set(metrics_keys))
+
+    @staticmethod
+    def _flatten_dict(d, parent_key='', sep='/'):
+        items = []
+        for k, v in d.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, collections.MutableMapping):
+                items.extend(GridSearchResult._flatten_dict(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
+
+
 
 
 
