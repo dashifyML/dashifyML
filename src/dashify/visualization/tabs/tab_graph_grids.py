@@ -9,6 +9,9 @@ from functools import reduce
 import numpy as np
 import plotly.graph_objs as go
 from pandas import DataFrame
+import pandas as pd
+from dashify.aggregation.aggregator import DataAggregator
+from functools import reduce
 
 
 def render_graphs(session_id: str, log_dir: str):
@@ -95,6 +98,10 @@ def is_metric_selected(metrics_df, metric_tag):
         return False
 
 
+def get_selected_group_by_param(metrics_df, metric_tag):
+    return metrics_df[metrics_df["metrics"] == metric_tag]["Grouping parameter"].iloc[0]
+
+
 def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame) -> List[dcc.Graph]:
     metric_tags = gs_loader.get_experiment(gs_loader.get_experiment_ids()[0]).metrics.keys()
 
@@ -102,7 +109,7 @@ def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame) -> List[dc
     metric_tags = [metric_tag for metric_tag in metric_tags if is_metric_selected(metrics_df, metric_tag)]
 
     return [
-        create_graph_with_std(metric_tag, gs_loader) if is_std_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
+        create_graph_with_std(metric_tag, gs_loader, get_selected_group_by_param(metrics_df, metric_tag)) if is_std_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
 
 
 def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
@@ -128,59 +135,67 @@ def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) ->
     return g
 
 
-def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
+def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str) -> dcc.Graph:
 
-    def prepare_data(metric_tag: str, gs_loader: GridSearchLoader) -> List:
-        experiment_ids = gs_loader.get_experiment_ids()
-        return [gs_loader.get_experiment(experiment_id).metrics[metric_tag] for experiment_id in experiment_ids]
+    def prepare_data(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str) -> List:
+        exps = [gs_loader.get_experiment(exp_id) for exp_id in gs_loader.get_experiment_ids()]
+        aggregator = DataAggregator(experiments=exps)
+        data = aggregator.group_by_param(metric_tag, group_by_param=group_by_param)
+        return data
 
-    # aggregate data from all experiments
-    data = np.array(prepare_data(metric_tag, gs_loader))
-
-    # find confidence intervals
-    mean, lower_bound, upper_bound = get_deviations(data)
+    # aggregate data from all experiments based on group by param
+    data_groups = prepare_data(metric_tag, gs_loader, group_by_param)
 
     g = dcc.Graph(
         id=metric_tag,
-        figure=get_std_figure(metric_tag, mean, lower_bound, upper_bound)
+        figure=get_std_figure(metric_tag, data_groups)
     )
     return g
 
 
-def get_std_figure(title, mean_data, lcb_data, ucb_data):
-    x = np.arange(mean_data.shape[0])
-    upper_bound = go.Scatter(
-        name='Upper Bound',
-        x=x,
-        y=ucb_data,
-        mode='lines',
-        marker=dict(color="#444"),
-        line=dict(width=0),
-        fillcolor='rgba(68, 68, 68, 0.3)',
-        fill='tonexty')
+def get_std_figure(title, data_groups):
 
-    trace = go.Scatter(
-        name='Average Value',
-        x=x,
-        y=mean_data,
-        mode='lines',
-        line=dict(color='rgb(31, 119, 180)'),
-        fillcolor='rgba(68, 68, 68, 0.3)',
-        fill='tonexty')
+    def get_band_traces(data):
 
-    lower_bound = go.Scatter(
-        name='Lower Bound',
-        x=x,
-        y=lcb_data,
-        marker=dict(color="#444"),
-        line=dict(width=0),
-        mode='lines')
+        # calculate bounds
+        mean_data, ucb_data, lcb_data = get_deviations(data)
 
-    # Trace order can be important
-    # with continuous error bars
-    data = [lower_bound, trace, upper_bound]
+        x = np.arange(mean_data.shape[0])
+        upper_bound = go.Scatter(
+            name='Upper Bound',
+            x=x,
+            y=ucb_data,
+            mode='lines',
+            marker=dict(color="#444"),
+            line=dict(width=0),
+            fillcolor='rgba(68, 68, 68, 0.3)',
+            fill='tonexty')
 
-    fig = go.Figure(data=data, layout={
+        trace = go.Scatter(
+            name='Average Value',
+            x=x,
+            y=mean_data,
+            mode='lines',
+            line=dict(color='rgb(31, 119, 180)'),
+            fillcolor='rgba(68, 68, 68, 0.3)',
+            fill='tonexty')
+
+        lower_bound = go.Scatter(
+            name='Lower Bound',
+            x=x,
+            y=lcb_data,
+            marker=dict(color="#444"),
+            line=dict(width=0),
+            mode='lines')
+
+        # Trace order can be important
+        # with continuous error bars
+        trace_data = [lower_bound, trace, upper_bound]
+
+        return trace_data
+
+    trace_data = list(reduce(lambda x, y: x+get_band_traces(y), data_groups.values(), []))
+    fig = go.Figure(data=trace_data, layout={
         'plot_bgcolor': '#ffffff',
         'showlegend': False
     })
