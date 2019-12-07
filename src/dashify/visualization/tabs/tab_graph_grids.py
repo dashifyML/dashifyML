@@ -20,7 +20,13 @@ def render_graphs(session_id: str, log_dir: str):
     # determine the metrics to be displayed in the graph
     metrics_df = server_storage.get(session_id, "Metrics")
 
+    # get the selected exps in the table
+    exp_ids = server_storage.get(session_id, "grid_search_table")["experiment_id"].values.tolist()
+
+    # filter
     gs_loader = GridSearchLoader(log_dir)
+    gs_loader.filter_experiments(exp_ids)
+
     graphs = create_graphs(gs_loader, metrics_df)
     graph_groups = create_graph_groups(graphs)
     grids = create_grids(graph_groups)

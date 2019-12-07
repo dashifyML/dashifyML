@@ -54,6 +54,9 @@ class GridSearchLoader:
                                                       identifier=experiment_id)
                             for experiment_id in configs.keys()}
 
+    def filter_experiments(self, filtered_ids):
+        self.experiments = {experiment_id: experiment for experiment_id, experiment in self.experiments.items() if experiment_id in filtered_ids}
+
     def check_integrity_of_logs(self, configs, metrics):
         experiments_configs = [os.path.dirname(c) for c in configs]
         experiments_metrics = [os.path.dirname(m) for m in metrics]
