@@ -1,18 +1,15 @@
-from dashify.data_import.data_table import DataTable
-from dashify.data_import.data_reader import GridSearchLoader
 import dash_html_components as html
 from typing import List
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 from dashify.visualization.app import app
-from dashify.visualization.storage.in_memory import server_storage
+from dashify.visualization.data_model.cache import cache
 import dash_table
 import pandas as pd
 
 
 def render_settings(session_id: str, log_dir):
-    gs_loader = GridSearchLoader(log_dir)
-    data_table = DataTable(gs_loader)
+    config_settings_dict = cache.get_configs_settings(session_id)
     params = data_table.get_config_columns()
     config_settings = create_configs_settings(session_id, params)
     metrics_keys = data_table.get_metrics_columns()

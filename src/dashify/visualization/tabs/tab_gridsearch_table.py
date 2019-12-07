@@ -1,11 +1,11 @@
 from dash.dependencies import Input, Output
 import dash_table
-from dashify.data_import.data_table import DataTable
-from dashify.data_import.data_reader import GridSearchLoader
+from dashify.visualization.data_import import DataTable
+from dashify.visualization.data_import import GridSearchLoader
 from dashify.visualization.app import app
 import pandas as pd
 from typing import List
-from dashify.visualization.storage.in_memory import server_storage
+from dashify.visualization.data_model.in_memory import server_storage
 import numpy as np
 
 

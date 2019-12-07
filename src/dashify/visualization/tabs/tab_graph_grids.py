@@ -1,8 +1,8 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import os
-from dashify.data_import.data_reader import GridSearchLoader, Experiment
-from dashify.visualization.storage.in_memory import server_storage
+from dashify.visualization.data_import import GridSearchLoader, Experiment
+from dashify.visualization.data_model.in_memory import server_storage
 from typing import List, Dict
 import operator
 from functools import reduce
@@ -14,9 +14,7 @@ from pandas import DataFrame
 def render_graphs(session_id: str, log_dir: str):
 
     # determine the metrics to be displayed in the graph
-    metrics_df = server_storage.get(session_id, "Metrics")
 
-    gs_loader = GridSearchLoader(log_dir)
     graphs = create_graphs(gs_loader, metrics_df)
     graph_groups = create_graph_groups(graphs)
     grids = create_grids(graph_groups)
@@ -28,6 +26,11 @@ def render_graphs(session_id: str, log_dir: str):
     )
     grids.append(interval)
     return grids
+
+def load_data(session_id: str, log_dir: str):
+    metrics_df = server_storage.get(session_id, "Metrics")
+    gs_loader = GridSearchLoader(log_dir)
+
 
 
 def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
@@ -101,8 +104,10 @@ def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame) -> List[dc
     # filter the metrics based on selection
     metric_tags = [metric_tag for metric_tag in metric_tags if is_metric_selected(metrics_df, metric_tag)]
 
-    return [
-        create_graph_with_std(metric_tag, gs_loader) if is_std_selected(metrics_df, metric_tag) else create_graph_with_line_plot(metric_tag, gs_loader) for metric_tag in metric_tags]
+    return [create_graph_with_std(metric_tag, gs_loader)
+            if is_std_selected(metrics_df, metric_tag)
+            else create_graph_with_line_plot(metric_tag, gs_loader)
+            for metric_tag in metric_tags]
 
 
 def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader) -> dcc.Graph:
