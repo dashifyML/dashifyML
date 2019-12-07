@@ -48,7 +48,7 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str], conf
         df_metrics_settings["Selected"] = "y"
         df_metrics_settings["Aggregation"] = agg_fun_list[0]
         df_metrics_settings["Std_band"] = "n"
-        df_metrics_settings["Grouping parameter)"] = config_params[0]
+        df_metrics_settings["Grouping parameter"] = config_params[0] if config_params else None
 
     table = html.Div([
             html.H5("Metrics"),
@@ -82,7 +82,7 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str], conf
                             for i in ["y", "n"]
                         ]
                     },
-                    'Analyze_by_parameter': {
+                    'Grouping parameter': {
                         'options': [
                             {'label': i, 'value': i}
                             for i in config_params
