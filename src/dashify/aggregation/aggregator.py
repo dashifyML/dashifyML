@@ -8,8 +8,9 @@ from dashify import log_dir_path
 
 
 class DataAggregator:
-    def __init__(self, experiments: List[Experiment]):
+    def __init__(self, experiments: List[Experiment], smoothing=0.0):
         self.data_df = self._get_combined_df(experiments)
+        self.smoothing = smoothing
 
     @staticmethod
     def _get_combined_df(experiments: List[Experiment]) -> DataFrame:
@@ -36,10 +37,21 @@ class DataAggregator:
         for param_name, param_group in grouped:
             data = []
             for exp_name, exp_group in param_group.groupby(["identifier"]):
-                data.append(exp_group[metric_tag].values.tolist())
+                data.append(self.smooth(exp_group[metric_tag].values.tolist(), self.smoothing))
             grouped_dict[f"Group: {group_by_param} with {param_name}"] = np.array(data)
 
         return grouped_dict
+
+    @staticmethod
+    def smooth(values: List[float], weight: float) -> List[float]:
+        last = values[0]
+        smoothed = []
+        for point in values:
+            smoothed_val = last * weight + (1 - weight) * point
+            smoothed.append(smoothed_val)
+            last = smoothed_val
+
+        return smoothed
 
 
 if __name__ == "__main__":

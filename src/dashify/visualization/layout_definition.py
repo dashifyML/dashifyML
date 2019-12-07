@@ -25,7 +25,8 @@ def get_layout(log_dir):
         # https://dash.plot.ly/sharing-data-between-callbacks
         html.Div(str(uuid.uuid4()), id='session-id', style={'display': 'none'}),
         # yet another ugly hack since callbacks always need an output defined...
-        html.Div(id="hidden-div-placeholder", style={"display":"none"})
+        html.Div(id="hidden-div-placeholder", style={"display":"none"}),
+        html.Div(id="hidden-div-placeholder-2", style={"display":"none"})
     ])
 
     return layout
