@@ -1,51 +1,35 @@
 import dash_html_components as html
-from typing import List
-from dash.dependencies import Input, Output
 import dash_core_components as dcc
-from dashify.visualization.app import app
-from dashify.visualization.data_model.cache import cache
+from dashify.visualization.cache_controller import cache_controller
 import dash_table
-import pandas as pd
 
 
-def render_settings(session_id: str, log_dir):
-    config_settings_dict = cache.get_configs_settings(session_id)
-    params = data_table.get_config_columns()
-    config_settings = create_configs_settings(session_id, params)
-    metrics_keys = data_table.get_metrics_columns()
-    metrics_settings_table = create_metrics_settings_table(session_id, metrics_keys, params)
+def render_settings(session_id: str):
+    config_settings = create_configs_settings(session_id)
+    metrics_settings_table = create_metrics_settings_table(session_id)
     content = html.Div(
         children=[html.H3("What to track?"), html.Div([config_settings, metrics_settings_table], className="row")])
     return content
 
 
-def create_configs_settings(session_id: str, keys: List[str]):
-    settings_type = "Configs"
-    keys.sort()
-    options = [{'label': key, 'value': key} for key in keys]
-    selected_elements = server_storage.get(session_id, settings_type)
+def create_configs_settings(session_id: str):
+    options = [{'label': key, 'value': key} for key in cache_controller.get_configs_settings(session_id)]
+    selected_elements = cache_controller.get_selected_configs_settings(session_id)
     settings = html.Div(
-        children=[html.H5(settings_type),
+        children=[html.H5("Configs"),
                   dcc.Checklist(
                       options=options,
-                      value=selected_elements if selected_elements is not None else keys,
-                      id=settings_type
+                      value=selected_elements,
+                      id="Configs"
                   )],
         className="three columns"
     )
     return settings
 
 
-def create_metrics_settings_table(session_id: str, metrics_keys: List[str], config_params: List[str]):
-    settings_type = "Metrics"
+def create_metrics_settings_table(session_id: str):
     agg_fun_list = ["min", "mean", "max"]
-    df_metrics_settings = server_storage.get(session_id, settings_type)
-    if df_metrics_settings is None:
-        df_metrics_settings = pd.DataFrame.from_dict({"metrics": metrics_keys})
-        df_metrics_settings["Selected"] = "y"
-        df_metrics_settings["Aggregation"] = agg_fun_list[0]
-        df_metrics_settings["Std_band"] = "n"
-        df_metrics_settings["Grouping parameter"] = config_params[0] if config_params else None
+    df_metrics_settings = cache_controller.get_metrics_settings(session_id)
 
     table = html.Div([
             html.H5("Metrics"),
@@ -82,7 +66,7 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str], conf
                     'Grouping parameter': {
                         'options': [
                             {'label': i, 'value': i}
-                            for i in config_params
+                            for i in cache_controller.get_selected_configs_settings(session_id)
                         ]
                     }
                 }
@@ -93,13 +77,13 @@ def create_metrics_settings_table(session_id: str, metrics_keys: List[str], conf
     return table
 
 
-@app.callback(
-    Output('hidden-div-placeholder', "children"),
-    [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'), Input('table-metrics', 'columns')])
-def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
-    # store config
-    server_storage.insert(session_id, "Configs", selected_configs)
-    # store metrics
-    df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
-    server_storage.insert(session_id, "Metrics", df)
-    return html.Div("")
+# @app.callback(
+#     Output('hidden-div-placeholder', "children"),
+#     [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'), Input('table-metrics', 'columns')])
+# def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
+#     # store config
+#     server_storage.insert(session_id, "Configs", selected_configs)
+#     # store metrics
+#     df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
+#     server_storage.insert(session_id, "Metrics", df)
+#     return html.Div("")
