@@ -10,7 +10,7 @@ def parse_args():
     args = parser.parse_args()
     log_dir = args.logdir
     if log_dir is None:
-        raise Exception("Please speficy the log dir with --logdir <your grid search log dir>")
+        raise Exception("Please specify the log dir with --logdir <your grid search log dir>")
     else:
         return log_dir
 

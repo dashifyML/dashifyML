@@ -12,6 +12,7 @@ from pandas import DataFrame
 import pandas as pd
 from dashify.aggregation.aggregator import DataAggregator
 from functools import reduce
+from plotly.colors import DEFAULT_PLOTLY_COLORS
 
 
 def render_graphs(session_id: str, log_dir: str):
@@ -148,45 +149,50 @@ def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader, group_by
 
     g = dcc.Graph(
         id=metric_tag,
-        figure=get_std_figure(metric_tag, data_groups)
+        figure=get_std_figure(metric_tag, data_groups, DEFAULT_PLOTLY_COLORS)
     )
     return g
 
 
-def get_std_figure(title, data_groups):
+def get_std_figure(title, data_groups, colors):
 
-    def get_band_traces(data):
+    def get_band_traces(name, data, color):
 
         # calculate bounds
         mean_data, ucb_data, lcb_data = get_deviations(data)
 
         x = np.arange(mean_data.shape[0])
         upper_bound = go.Scatter(
-            name='Upper Bound',
+            name=name,
             x=x,
             y=ucb_data,
             mode='lines',
             marker=dict(color="#444"),
             line=dict(width=0),
-            fillcolor='rgba(68, 68, 68, 0.3)',
-            fill='tonexty')
+            fillcolor=color,
+            fill='tonexty',
+            legendgroup=name,
+            showlegend=False,)
 
         trace = go.Scatter(
-            name='Average Value',
+            name=name,
             x=x,
             y=mean_data,
             mode='lines',
-            line=dict(color='rgb(31, 119, 180)'),
-            fillcolor='rgba(68, 68, 68, 0.3)',
-            fill='tonexty')
+            line=dict(color=color),
+            fillcolor=color,
+            fill='tonexty',
+            legendgroup=name)
 
         lower_bound = go.Scatter(
-            name='Lower Bound',
+            name=name,
             x=x,
             y=lcb_data,
-            marker=dict(color="#444"),
+            fillcolor=color,
             line=dict(width=0),
-            mode='lines')
+            mode='lines',
+            legendgroup=name,
+            showlegend=False,)
 
         # Trace order can be important
         # with continuous error bars
@@ -194,10 +200,10 @@ def get_std_figure(title, data_groups):
 
         return trace_data
 
-    trace_data = list(reduce(lambda x, y: x+get_band_traces(y), data_groups.values(), []))
+    trace_data = list(reduce(lambda x, y: x+get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), colors), []))
     fig = go.Figure(data=trace_data, layout={
         'plot_bgcolor': '#ffffff',
-        'showlegend': False
+        'showlegend': True
     })
 
     # center the title

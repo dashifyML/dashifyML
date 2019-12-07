@@ -37,7 +37,7 @@ class DataAggregator:
             data = []
             for exp_name, exp_group in param_group.groupby(["identifier"]):
                 data.append(exp_group[metric_tag].values.tolist())
-            grouped_dict[f"{group_by_param}_{param_name}"] = np.array(data)
+            grouped_dict[f"Group: {group_by_param} with {param_name}"] = np.array(data)
 
         return grouped_dict
 
