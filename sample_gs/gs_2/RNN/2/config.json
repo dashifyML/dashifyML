@@ -1,0 +1,14 @@
+{
+  "dataset": "dataset_1",
+  "optimizer": {
+    "lr": 1.0,
+    "weight_decay": 0
+  },
+  "model": {
+    "type": "RNN",
+    "layers": [
+      100,
+      2
+    ]
+  }
+}
