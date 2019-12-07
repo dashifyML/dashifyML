@@ -2,6 +2,9 @@ import dash_html_components as html
 import dash_core_components as dcc
 from dashify.visualization.cache_controller import cache_controller
 import dash_table
+from dash.dependencies import Input, Output
+from dashify.visualization.app import app
+import pandas as pd
 
 
 def render_settings(session_id: str):
@@ -77,13 +80,13 @@ def create_metrics_settings_table(session_id: str):
     return table
 
 
-# @app.callback(
-#     Output('hidden-div-placeholder', "children"),
-#     [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'), Input('table-metrics', 'columns')])
-# def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
-#     # store config
-#     server_storage.insert(session_id, "Configs", selected_configs)
-#     # store metrics
-#     df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
-#     server_storage.insert(session_id, "Metrics", df)
-#     return html.Div("")
+@app.callback(
+    Output('hidden-div-placeholder', "children"),
+    [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'), Input('table-metrics', 'columns')])
+def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
+    # store config
+    cache_controller.set_selected_configs_settings(session_id, selected_configs)
+    # store metrics
+    df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
+    cache_controller.set_metrics_settings(session_id, df)
+    return html.Div("")
