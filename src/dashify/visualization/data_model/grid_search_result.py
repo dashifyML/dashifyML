@@ -1,7 +1,7 @@
 from dashify.visualization.data_model.experiment import Experiment
 from typing import List
 import collections
-
+import pandas as pd
 
 class GridSearchResult:
     def __init__(self, log_dir: str, experiments: List[Experiment] = None):
@@ -51,6 +51,16 @@ class GridSearchResult:
             keys = list(experiment.metrics.keys())
             metrics_keys = metrics_keys + keys
         return list(set(metrics_keys))
+
+    def to_pandas_dataframe(self) -> pd.DataFrame:
+        metrics = []
+        configs = []
+        for experiment in self.experiments:
+            metrics.append(GridSearchResult._flatten_dict(experiment.metrics))
+            configs.append(GridSearchResult._flatten_dict(experiment.config))
+        col_sorting = list(metrics[0].keys())
+        df = pd.concat([pd.DataFrame(configs), pd.DataFrame(metrics)], axis=1)
+        return df
 
     @staticmethod
     def _flatten_dict(d, parent_key='', sep='/'):
