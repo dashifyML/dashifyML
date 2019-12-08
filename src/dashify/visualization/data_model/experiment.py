@@ -2,31 +2,19 @@ from typing import Dict
 
 
 class Experiment:
-    def __init__(self, config=None, metrics: Dict[str, float]=None, identifier: str=None):
+    def __init__(self, config:Dict, metrics: Dict[str, float], identifier: str):
         self._config = config
         self._metrics = metrics
         self._identifier = identifier
 
     @property
     def config(self) -> Dict:
-        return self._config
-
-    @config.setter
-    def config(self, value: Dict):
-        self._config = value
+        return self._config.copy()
 
     @property
     def metrics(self) -> Dict[str, float]:
-        return self._metrics
-
-    @metrics.setter
-    def metrics(self, value: Dict[str, float]):
-        self._metrics = value
+        return self._metrics.copy()
 
     @property
     def identifier(self) -> str:
         return self._identifier
-
-    @identifier.setter
-    def identifier(self, value: str):
-        self._identifier = value
