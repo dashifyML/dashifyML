@@ -1,8 +1,6 @@
 import dash_core_components as dcc
 import dash_html_components as html
 import os
-from dashify.visualization.data_import import GridSearchLoader, Experiment
-from dashify.visualization.data_model.in_memory import server_storage
 from typing import List, Dict
 import operator
 from functools import reduce
@@ -30,7 +28,6 @@ def render_graphs(session_id: str, log_dir: str):
 def load_data(session_id: str, log_dir: str):
     metrics_df = server_storage.get(session_id, "Metrics")
     gs_loader = GridSearchLoader(log_dir)
-
 
 
 def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
