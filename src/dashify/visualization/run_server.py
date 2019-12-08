@@ -1,5 +1,4 @@
 import argparse
-import dashify
 from dashify.visualization.app import app
 from dashify.visualization.layout_definition import get_layout
 
