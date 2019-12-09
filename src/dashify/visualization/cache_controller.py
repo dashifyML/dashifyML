@@ -5,64 +5,66 @@ from dashify.visualization.data_model.grid_search_result import GridSearchResult
 
 
 class InMemoryCacheController:
-    def __init__(self, log_dir: str):
-        self.log_dir = log_dir
-        self.cache: Dict[str, SessionStorage] = dict()
+    def __init__(self):
+        self.cache: Dict[str, Dict[str, SessionStorage]] = dict()
 
-    def invalidate_cache(self, session_id: str):
-        print(f"Invalidating cache for {session_id}.")
+    def invalidate_cache(self, log_dir: str, session_id: str):
+        print(f"Invalidating cache for {log_dir, session_id}.")
+        if log_dir not in self.cache:
+            self.cache[log_dir] = dict()
+
         # reload grid search results from disk
-        gs_result = LocalDataLoader.get_grid_search_results(self.log_dir)
+        gs_result = LocalDataLoader.get_grid_search_results(log_dir)
         config_dict = {key: True for key in gs_result.get_flattened_experiment_configs()}
         config_settings = ConfigSettings(config_dict)
         metrics_settings = MetricsSettings(tracked_metrics=gs_result.get_experiment_metrics(),
                                            config_settings=config_settings)
         experiment_filters = ExperimentFilters()
 
-        self.cache[session_id] = SessionStorage(gridsearch_result=gs_result,
-                                                metrics_settings=metrics_settings,
-                                                config_settings=config_settings,
-                                                experiment_filters=experiment_filters)
+        self.cache[log_dir][session_id] = SessionStorage(gridsearch_result=gs_result,
+                                                         metrics_settings=metrics_settings,
+                                                         config_settings=config_settings,
+                                                         experiment_filters=experiment_filters)
 
-    def get_gs_results(self, session_id: str) -> GridSearchResult:
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        return self.cache[session_id].gridsearch_result
+    def get_gs_results(self, log_dir: str, session_id: str) -> GridSearchResult:
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        return self.cache[log_dir][session_id].gridsearch_result
 
-    def get_configs_settings(self, session_id: str) -> List[str]:
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        return self.cache[session_id].config_settings.get_all()
+    def get_configs_settings(self, log_dir: str, session_id: str) -> List[str]:
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        return self.cache[log_dir][session_id].config_settings.get_all()
 
-    def get_selected_configs_settings(self, session_id: str) -> List[str]:
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        return self.cache[session_id].config_settings.get_selected()
+    def get_selected_configs_settings(self, log_dir: str, session_id: str) -> List[str]:
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        return self.cache[log_dir][session_id].config_settings.get_selected()
 
-    def set_selected_configs_settings(self, session_id: str, selected_configs: List[str]):
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        return self.cache[session_id].config_settings.set_selected(selected_configs)
+    def set_selected_configs_settings(self, log_dir: str, session_id: str, selected_configs: List[str]):
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        return self.cache[log_dir][session_id].config_settings.set_selected(selected_configs)
 
-    def get_metrics_settings(self, session_id: str) -> pd.DataFrame:
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        return self.cache[session_id].metrics_settings.metrics_settings_table.copy()
+    def get_metrics_settings(self, log_dir: str, session_id: str) -> pd.DataFrame:
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        return self.cache[log_dir][session_id].metrics_settings.metrics_settings_table.copy()
 
-    def set_metrics_settings(self, session_id: str, metrics_settings_table: pd.DataFrame):
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        self.cache[session_id].metrics_settings.metrics_settings_table = metrics_settings_table
+    def set_metrics_settings(self, log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        self.cache[log_dir][session_id].metrics_settings.metrics_settings_table = metrics_settings_table
 
-    def set_experiment_filters(self, session_id: str, filters: List[str]):
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        self.cache[session_id].experiment_filters.filters = filters
+    def set_experiment_filters(self, log_dir: str, session_id: str, filters: List[str]):
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        self.cache[log_dir][session_id].experiment_filters.filters = filters
 
-    def get_experiment_filters(self, session_id: str) -> List[str]:
-        if session_id not in self.cache:
-            self.invalidate_cache(session_id)
-        return self.cache[session_id].experiment_filters.filters
+    def get_experiment_filters(self, log_dir: str, session_id: str) -> List[str]:
+        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
+            self.invalidate_cache(log_dir, session_id)
+        return self.cache[log_dir][session_id].experiment_filters.filters
 
 
 #################################################################
@@ -170,8 +172,4 @@ class SessionStorage:
         self._experiment_filters = value
 
 
-cache_controller = InMemoryCacheController(log_dir="/home/mluebberin/repositories/github/dashify/sample_gs")
-
-if __name__ == '__main__':
-    cache_controller.invalidate_cache("a")
-    print("abc")
+cache_controller = InMemoryCacheController()

@@ -28,7 +28,6 @@ def get_layout(log_dir):
         html.Div(id="hidden-div-placeholder", style={"display":"none"}),
         html.Div(id="hidden-div-placeholder-2", style={"display":"none"})
     ])
-
     return layout
 
 
@@ -41,16 +40,15 @@ def get_log_dir(layout):
 def render_content(tab, session_id, log_dir):
     if tab == 'tab-settings':
         return html.Div([
-            render_settings(session_id)
+            render_settings(log_dir, session_id)
         ])
     elif tab == 'tab-table':
         return html.Div([
-            render_table(session_id)
+            render_table(log_dir, session_id)
         ])
     elif tab == 'tab-graphs':
         #return html.Div(children=render_graphs(session_id, log_dir), id="graph-grids")
         pass
-# TABLE TAB STUFF
 
 
 
