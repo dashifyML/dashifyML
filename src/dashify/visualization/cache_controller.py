@@ -17,12 +17,12 @@ class InMemoryCacheController:
         config_settings = ConfigSettings(config_dict)
         metrics_settings = MetricsSettings(tracked_metrics=gs_result.get_experiment_metrics(),
                                            config_settings=config_settings)
-        gs_table = GridSearchTableFilters()
+        experiment_filters = ExperimentFilters()
 
         self.cache[session_id] = SessionStorage(gridsearch_result=gs_result,
                                                 metrics_settings=metrics_settings,
                                                 config_settings=config_settings,
-                                                gs_table=gs_table)
+                                                experiment_filters=experiment_filters)
 
     def get_gs_results(self, session_id: str) -> GridSearchResult:
         if session_id not in self.cache:
@@ -54,15 +54,15 @@ class InMemoryCacheController:
             self.invalidate_cache(session_id)
         self.cache[session_id].metrics_settings.metrics_settings_table = metrics_settings_table
 
-    def set_gs_table_filters(self, session_id: str, filters: str):
+    def set_experiment_filters(self, session_id: str, filters: List[str]):
         if session_id not in self.cache:
             self.invalidate_cache(session_id)
-        self.cache[session_id].gs_table.set_filters(filters)
+        self.cache[session_id].experiment_filters.filters = filters
 
-    def get_gs_table_filters(self, session_id: str) -> str:
+    def get_experiment_filters(self, session_id: str) -> List[str]:
         if session_id not in self.cache:
             self.invalidate_cache(session_id)
-        return self.cache[session_id].gs_table.get_filters()
+        return self.cache[session_id].experiment_filters.filters
 
 
 #################################################################
@@ -105,7 +105,7 @@ class MetricsSettings:
         self._metrics_settings_table = value
 
 
-class GridSearchTableFilters:
+class ExperimentFilters:
     _filter_operators = [['ge ', '>='],
                          ['le ', '<='],
                          ['lt ', '<'],
@@ -118,22 +118,24 @@ class GridSearchTableFilters:
     def __init__(self, filters: List[str] = None):
         if filters is None:
             filters = []
-        self.filters = filters
+        self._filters = filters
 
-    def set_filters(self, filter_string: str):
-        self.filters = filter_string.split(' && ')
+    @property
+    def filters(self) -> List[str]:
+        return self._filters
 
-    def get_filters(self) -> str:
-        return ' && '.join(self.filters)
+    @filters.setter
+    def filters(self, value: List[str]):
+        self._filters = value
 
 
 class SessionStorage:
     def __init__(self, gridsearch_result: GridSearchResult, metrics_settings: MetricsSettings,
-                 config_settings: ConfigSettings, gs_table: GridSearchTableFilters):
+                 config_settings: ConfigSettings, experiment_filters: ExperimentFilters):
         self._gridsearch_result = gridsearch_result
         self._metrics_settings = metrics_settings
         self._config_settings = config_settings
-        self._gs_table = gs_table
+        self._experiment_filters = experiment_filters
 
     @property
     def gridsearch_result(self) -> GridSearchResult:
@@ -160,12 +162,12 @@ class SessionStorage:
         self._config_settings = value
 
     @property
-    def gs_table(self) -> GridSearchTableFilters:
-        return self._gs_table
+    def experiment_filters(self) -> ExperimentFilters:
+        return self._experiment_filters
 
-    @gs_table.setter
-    def gs_table(self, value: GridSearchTableFilters):
-        self._gs_table = value
+    @experiment_filters.setter
+    def experiment_filters(self, value: ExperimentFilters):
+        self._experiment_filters = value
 
 
 cache_controller = InMemoryCacheController(log_dir="/home/mluebberin/repositories/github/dashify/sample_gs")
