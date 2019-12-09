@@ -1,7 +1,7 @@
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-# from dashify.visualization.tabs.tab_graph_grids import render_graphs
+from dashify.visualization.tabs.tab_graph_grids import render_graphs
 from dashify.visualization.tabs.tab_experiments_table import render_table
 from dashify.visualization.tabs.tab_settings import render_settings
 from dashify.visualization.app import app
@@ -47,7 +47,7 @@ def render_content(tab, session_id, log_dir):
             render_table(log_dir, session_id)
         ])
     elif tab == 'tab-graphs':
-        #return html.Div(children=render_graphs(session_id, log_dir), id="graph-grids")
+        return html.Div(children=render_graphs(session_id, log_dir), id="graph-grids")
         pass
 
 

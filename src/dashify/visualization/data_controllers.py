@@ -5,6 +5,16 @@ import numpy as np
 from dashify.visualization.cache_controller import ExperimentFilters
 
 
+class GraphController:
+    @staticmethod
+    def get_smoothing_factor(log_dir: str, session_id: str) -> float:
+        return cache_controller.get_graph_smoothing_factor(log_dir, session_id)
+
+    @staticmethod
+    def set_smoothing_factor(log_dir: str, session_id: str, smoothing_factor: float):
+        cache_controller.set_graph_smoothing_factor(log_dir, session_id, smoothing_factor)
+
+
 class MetricsController:
     @staticmethod
     def get_metrics_settings(log_dir: str, session_id: str) -> pd.DataFrame:
@@ -12,7 +22,22 @@ class MetricsController:
 
     @staticmethod
     def set_metrics_settings(log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
-        return cache_controller.set_metrics_settings(log_dir, session_id, metrics_settings_table)
+        cache_controller.set_metrics_settings(log_dir, session_id, metrics_settings_table)
+
+    @staticmethod
+    def get_selected_metrics(log_dir: str, session_id: str):
+        return MetricsController.filter_metrics_settings(log_dir, session_id, "Selected", "y")["metrics"]
+
+    @staticmethod
+    def filter_metrics_settings(log_dir: str, session_id: str, filter_col: str, filter_value: object):
+        df_metrics = MetricsController.get_metrics_settings(log_dir, session_id)
+        return df_metrics[df_metrics[filter_col] == filter_value]
+
+    @staticmethod
+    def get_metric_setting_by_metric_tag(log_dir: str, session_id: str, metric_tag: str, cols: List[str] = None):
+        df_metrics = MetricsController.get_metrics_settings(log_dir, session_id)
+        row = df_metrics[df_metrics["metrics"] == metric_tag]
+        return row if cols is None else row[cols]
 
 
 class ConfigController:
@@ -26,7 +51,7 @@ class ConfigController:
 
     @staticmethod
     def set_selected_configs_settings(log_dir: str, session_id: str, selected_configs: List[str]):
-        return cache_controller.set_selected_configs_settings(log_dir, session_id, selected_configs)
+        cache_controller.set_selected_configs_settings(log_dir, session_id, selected_configs)
 
 
 class ExperimentController:
@@ -43,7 +68,7 @@ class ExperimentController:
 
     @staticmethod
     def set_experiment_filters(log_dir: str, session_id: str, filters: str):
-        return cache_controller.set_experiment_filters(log_dir, session_id, filters)
+        cache_controller.set_experiment_filters(log_dir, session_id, filters)
 
     @staticmethod
     def get_experiment_filters(log_dir: str, session_id: str) -> str:
