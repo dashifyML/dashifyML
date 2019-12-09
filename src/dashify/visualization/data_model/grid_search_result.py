@@ -3,6 +3,7 @@ from typing import List
 import collections
 import pandas as pd
 
+
 class GridSearchResult:
     def __init__(self, log_dir: str, experiments: List[Experiment] = None):
         """
@@ -55,10 +56,12 @@ class GridSearchResult:
     def to_pandas_dataframe(self) -> pd.DataFrame:
         metrics = []
         configs = []
+        experiment_ids = []
         for experiment in self.experiments:
             metrics.append(GridSearchResult._flatten_dict(experiment.metrics))
             configs.append(GridSearchResult._flatten_dict(experiment.config))
-        df = pd.concat([pd.DataFrame(configs), pd.DataFrame(metrics)], axis=1)
+            experiment_ids.append({"experiment_id": experiment.identifier})
+        df = pd.concat([pd.DataFrame(configs), pd.DataFrame(metrics), experiment_ids], axis=1)
         return df
 
     @staticmethod
