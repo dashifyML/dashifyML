@@ -13,22 +13,22 @@ class LocalDataLoader:
     """
 
     @staticmethod
-    def get_grid_search_results(log_dir: str) -> GridSearchResult:
+    def get_grid_search_results(gs_log_dir: str) -> GridSearchResult:
         """
         Creates a `GridSearchResult` from a given logging directory.
-        :param log_dir: Path to grid search logs
+        :param gs_log_dir: Path to grid search logs
         :return: GridSearchResult
         """
-        gs_result = GridSearchResult(log_dir)
-        config_paths = glob.glob(os.path.join(log_dir, "**/config.json"), recursive=True)
-        metric_paths = glob.glob(os.path.join(log_dir, "**/metrics.json"), recursive=True)
+        gs_result = GridSearchResult(gs_log_dir)
+        config_paths = glob.glob(os.path.join(gs_log_dir, "**/config.json"), recursive=True)
+        metric_paths = glob.glob(os.path.join(gs_log_dir, "**/metrics.json"), recursive=True)
 
         LocalDataLoader._check_integrity_of_logs(config_paths, metric_paths)
 
         # load configs and metrics into dictionaries (experiment_id -> loaded_resource)
-        configs = {LocalDataLoader._resource_path_to_experiment_id(config_path, log_dir): LocalDataLoader._load_file(resource_path=config_path)
+        configs = {LocalDataLoader._resource_path_to_experiment_id(config_path, gs_log_dir): LocalDataLoader._load_file(resource_path=config_path)
                    for config_path in config_paths}
-        metrics = {LocalDataLoader._resource_path_to_experiment_id(metric_path, log_dir): LocalDataLoader._load_file(resource_path=metric_path)
+        metrics = {LocalDataLoader._resource_path_to_experiment_id(metric_path, gs_log_dir): LocalDataLoader._load_file(resource_path=metric_path)
                    for metric_path in metric_paths}
 
         # create experiment and store in grid search result object
@@ -59,11 +59,11 @@ class LocalDataLoader:
             return json.load(f)
 
     @staticmethod
-    def _resource_path_to_experiment_id(experiment_file_path: str, log_dir: str) -> str:
+    def _resource_path_to_experiment_id(experiment_file_path: str, gs_log_dir: str) -> str:
         """
         Maps the file path of a config or metrics file to the respective experiment id.
         :param experiment_file_path:
-        :param log_dir:
+        :param gs_log_dir:
         :return:
         """
-        return os.path.dirname(os.path.relpath(experiment_file_path, log_dir))
+        return os.path.dirname(os.path.relpath(experiment_file_path, gs_log_dir))

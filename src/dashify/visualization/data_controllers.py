@@ -7,76 +7,76 @@ from dashify.visualization.cache_controller import ExperimentFilters
 
 class GraphController:
     @staticmethod
-    def get_smoothing_factor(log_dir: str, session_id: str) -> float:
-        return cache_controller.get_graph_smoothing_factor(log_dir, session_id)
+    def get_smoothing_factor(gs_log_dir: str, session_id: str) -> float:
+        return cache_controller.get_graph_smoothing_factor(gs_log_dir, session_id)
 
     @staticmethod
-    def set_smoothing_factor(log_dir: str, session_id: str, smoothing_factor: float):
-        cache_controller.set_graph_smoothing_factor(log_dir, session_id, smoothing_factor)
+    def set_smoothing_factor(gs_log_dir: str, session_id: str, smoothing_factor: float):
+        cache_controller.set_graph_smoothing_factor(gs_log_dir, session_id, smoothing_factor)
 
 
 class MetricsController:
     @staticmethod
-    def get_metrics_settings(log_dir: str, session_id: str) -> pd.DataFrame:
-        return cache_controller.get_metrics_settings(log_dir, session_id)
+    def get_metrics_settings(gs_log_dir: str, session_id: str) -> pd.DataFrame:
+        return cache_controller.get_metrics_settings(gs_log_dir, session_id)
 
     @staticmethod
-    def set_metrics_settings(log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
-        cache_controller.set_metrics_settings(log_dir, session_id, metrics_settings_table)
+    def set_metrics_settings(gs_log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
+        cache_controller.set_metrics_settings(gs_log_dir, session_id, metrics_settings_table)
 
     @staticmethod
-    def get_selected_metrics(log_dir: str, session_id: str):
-        return MetricsController.filter_metrics_settings(log_dir, session_id, "Selected", "y")["metrics"]
+    def get_selected_metrics(gs_log_dir: str, session_id: str):
+        return MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Selected", "y")["metrics"]
 
     @staticmethod
-    def filter_metrics_settings(log_dir: str, session_id: str, filter_col: str, filter_value: object):
-        df_metrics = MetricsController.get_metrics_settings(log_dir, session_id)
+    def filter_metrics_settings(gs_log_dir: str, session_id: str, filter_col: str, filter_value: object):
+        df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
         return df_metrics[df_metrics[filter_col] == filter_value]
 
     @staticmethod
-    def get_metric_setting_by_metric_tag(log_dir: str, session_id: str, metric_tag: str, cols: List[str] = None):
-        df_metrics = MetricsController.get_metrics_settings(log_dir, session_id)
+    def get_metric_setting_by_metric_tag(gs_log_dir: str, session_id: str, metric_tag: str, cols: List[str] = None):
+        df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
         row = df_metrics[df_metrics["metrics"] == metric_tag]
         return row if cols is None else row[cols]
 
 
 class ConfigController:
     @staticmethod
-    def get_configs_settings(log_dir: str, session_id: str) -> List[str]:
-        return cache_controller.get_configs_settings(log_dir, session_id)
+    def get_configs_settings(gs_log_dir: str, session_id: str) -> List[str]:
+        return cache_controller.get_configs_settings(gs_log_dir, session_id)
 
     @staticmethod
-    def get_selected_configs_settings(log_dir: str, session_id: str) -> List[str]:
-        return cache_controller.get_selected_configs_settings(log_dir, session_id)
+    def get_selected_configs_settings(gs_log_dir: str, session_id: str) -> List[str]:
+        return cache_controller.get_selected_configs_settings(gs_log_dir, session_id)
 
     @staticmethod
-    def set_selected_configs_settings(log_dir: str, session_id: str, selected_configs: List[str]):
-        cache_controller.set_selected_configs_settings(log_dir, session_id, selected_configs)
+    def set_selected_configs_settings(gs_log_dir: str, session_id: str, selected_configs: List[str]):
+        cache_controller.set_selected_configs_settings(gs_log_dir, session_id, selected_configs)
 
 
 class ExperimentController:
     @staticmethod
-    def get_experiments_df(log_dir: str, session_id: str) -> pd.DataFrame:
-        metrics_settings = cache_controller.get_metrics_settings(log_dir, session_id)
-        config_cols = cache_controller.get_selected_configs_settings(log_dir, session_id)
-        experiment_filters = cache_controller.get_experiment_filters(log_dir, session_id)
-        df_experiments = cache_controller.get_gs_results(log_dir, session_id).to_pandas_dataframe()
+    def get_experiments_df(gs_log_dir: str, session_id: str) -> pd.DataFrame:
+        metrics_settings = cache_controller.get_metrics_settings(gs_log_dir, session_id)
+        config_cols = cache_controller.get_selected_configs_settings(gs_log_dir, session_id)
+        experiment_filters = cache_controller.get_experiment_filters(gs_log_dir, session_id)
+        df_experiments = cache_controller.get_gs_results(gs_log_dir, session_id).to_pandas_dataframe()
         return ExperimentController._process_experiments_df(df_experiments=df_experiments,
                                                             config_cols=config_cols,
                                                             metrics_settings=metrics_settings,
                                                             experiment_filters=experiment_filters)
 
     @staticmethod
-    def set_experiment_filters(log_dir: str, session_id: str, filters: str):
-        cache_controller.set_experiment_filters(log_dir, session_id, filters)
+    def set_experiment_filters(gs_log_dir: str, session_id: str, filters: str):
+        cache_controller.set_experiment_filters(gs_log_dir, session_id, filters)
 
     @staticmethod
-    def get_experiment_filters(log_dir: str, session_id: str) -> str:
-        return cache_controller.get_experiment_filters(log_dir, session_id)
+    def get_experiment_filters(gs_log_dir: str, session_id: str) -> str:
+        return cache_controller.get_experiment_filters(gs_log_dir, session_id)
 
     @staticmethod
-    def get_experiment_filters_string(log_dir: str, session_id: str) -> str:
-        return cache_controller.get_experiment_filters(log_dir, session_id)
+    def get_experiment_filters_string(gs_log_dir: str, session_id: str) -> str:
+        return cache_controller.get_experiment_filters(gs_log_dir, session_id)
 
     @staticmethod
     def _process_experiments_df(df_experiments: pd.DataFrame, config_cols: List[str], metrics_settings: pd.DataFrame,

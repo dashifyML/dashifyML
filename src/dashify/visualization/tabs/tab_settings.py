@@ -7,17 +7,17 @@ from dashify.visualization.app import app
 import pandas as pd
 
 
-def render_settings(log_dir: str, session_id: str):
-    config_settings = create_configs_settings(log_dir, session_id)
-    metrics_settings_table = create_metrics_settings_table(log_dir, session_id)
+def render_settings(gs_log_dir: str, session_id: str):
+    config_settings = create_configs_settings(gs_log_dir, session_id)
+    metrics_settings_table = create_metrics_settings_table(gs_log_dir, session_id)
     content = html.Div(
         children=[html.H3("What to track?"), html.Div([config_settings, metrics_settings_table], className="row")])
     return content
 
 
-def create_configs_settings(log_dir: str, session_id: str):
-    options = [{'label': key, 'value': key} for key in ConfigController.get_configs_settings(log_dir, session_id)]
-    selected_elements = ConfigController.get_selected_configs_settings(log_dir, session_id)
+def create_configs_settings(gs_log_dir: str, session_id: str):
+    options = [{'label': key, 'value': key} for key in ConfigController.get_configs_settings(gs_log_dir, session_id)]
+    selected_elements = ConfigController.get_selected_configs_settings(gs_log_dir, session_id)
     settings = html.Div(
         children=[html.H5("Configs"),
                   dcc.Checklist(
@@ -30,9 +30,9 @@ def create_configs_settings(log_dir: str, session_id: str):
     return settings
 
 
-def create_metrics_settings_table(log_dir: str, session_id: str):
+def create_metrics_settings_table(gs_log_dir: str, session_id: str):
     agg_fun_list = ["min", "mean", "max"]
-    df_metrics_settings = MetricsController.get_metrics_settings(log_dir, session_id)
+    df_metrics_settings = MetricsController.get_metrics_settings(gs_log_dir, session_id)
 
     table = html.Div([
         html.H5("Metrics"),
@@ -69,7 +69,7 @@ def create_metrics_settings_table(log_dir: str, session_id: str):
                 'Grouping parameter': {
                     'options': [
                         {'label': i, 'value': i}
-                        for i in ConfigController.get_selected_configs_settings(log_dir, session_id)
+                        for i in ConfigController.get_selected_configs_settings(gs_log_dir, session_id)
                     ]
                 }
             }
@@ -84,10 +84,10 @@ def create_metrics_settings_table(log_dir: str, session_id: str):
     Output('hidden-div-placeholder', "children"),
     [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'),
      Input('table-metrics', 'columns'), Input("hidden-log-dir", "children"),])
-def settings_callback(selected_configs, session_id, metric_rows, metric_colums, log_dir):
+def settings_callback(selected_configs, session_id, metric_rows, metric_colums, gs_log_dir):
     # store config
-    ConfigController.set_selected_configs_settings(log_dir, session_id, selected_configs)
+    ConfigController.set_selected_configs_settings(gs_log_dir, session_id, selected_configs)
     # store metrics
     df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
-    MetricsController.set_metrics_settings(log_dir, session_id, df)
+    MetricsController.set_metrics_settings(gs_log_dir, session_id, df)
     return html.Div("")

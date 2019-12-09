@@ -8,74 +8,74 @@ class InMemoryCacheController:
     def __init__(self):
         self.cache: Dict[str, Dict[str, SessionStorage]] = dict()
 
-    def invalidate_cache(self, log_dir: str, session_id: str):
-        print(f"Invalidating cache for {log_dir, session_id}.")
-        if log_dir not in self.cache:
-            self.cache[log_dir] = dict()
+    def invalidate_cache(self, gs_log_dir: str, session_id: str):
+        print(f"Invalidating cache for {gs_log_dir, session_id}.")
+        if gs_log_dir not in self.cache:
+            self.cache[gs_log_dir] = dict()
 
         # reload grid search results from disk
-        gs_result = LocalDataLoader.get_grid_search_results(log_dir)
+        gs_result = LocalDataLoader.get_grid_search_results(gs_log_dir)
         config_dict = {key: True for key in gs_result.get_flattened_experiment_configs()}
         config_settings = ConfigSettings(config_dict)
         metrics_settings = MetricsSettings(tracked_metrics=gs_result.get_experiment_metrics(),
                                            config_settings=config_settings)
         experiment_filters = ExperimentFilters()
         graph_settings = GraphSettings()
-        self.cache[log_dir][session_id] = SessionStorage(gridsearch_result=gs_result,
+        self.cache[gs_log_dir][session_id] = SessionStorage(gridsearch_result=gs_result,
                                                          metrics_settings=metrics_settings,
                                                          config_settings=config_settings,
                                                          experiment_filters=experiment_filters,
                                                          graph_settings=graph_settings)
 
-    def get_gs_results(self, log_dir: str, session_id: str) -> GridSearchResult:
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        return self.cache[log_dir][session_id].gridsearch_result
+    def get_gs_results(self, gs_log_dir: str, session_id: str) -> GridSearchResult:
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        return self.cache[gs_log_dir][session_id].gridsearch_result
 
-    def get_configs_settings(self, log_dir: str, session_id: str) -> List[str]:
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        return self.cache[log_dir][session_id].config_settings.get_all()
+    def get_configs_settings(self, gs_log_dir: str, session_id: str) -> List[str]:
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        return self.cache[gs_log_dir][session_id].config_settings.get_all()
 
-    def get_selected_configs_settings(self, log_dir: str, session_id: str) -> List[str]:
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        return self.cache[log_dir][session_id].config_settings.get_selected()
+    def get_selected_configs_settings(self, gs_log_dir: str, session_id: str) -> List[str]:
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        return self.cache[gs_log_dir][session_id].config_settings.get_selected()
 
-    def set_selected_configs_settings(self, log_dir: str, session_id: str, selected_configs: List[str]):
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        self.cache[log_dir][session_id].config_settings.set_selected(selected_configs)
+    def set_selected_configs_settings(self, gs_log_dir: str, session_id: str, selected_configs: List[str]):
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        self.cache[gs_log_dir][session_id].config_settings.set_selected(selected_configs)
 
-    def get_metrics_settings(self, log_dir: str, session_id: str) -> pd.DataFrame:
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        return self.cache[log_dir][session_id].metrics_settings.metrics_settings_table.copy()
+    def get_metrics_settings(self, gs_log_dir: str, session_id: str) -> pd.DataFrame:
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        return self.cache[gs_log_dir][session_id].metrics_settings.metrics_settings_table.copy()
 
-    def set_metrics_settings(self, log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        self.cache[log_dir][session_id].metrics_settings.metrics_settings_table = metrics_settings_table
+    def set_metrics_settings(self, gs_log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        self.cache[gs_log_dir][session_id].metrics_settings.metrics_settings_table = metrics_settings_table
 
-    def set_experiment_filters(self, log_dir: str, session_id: str, filters: List[str]):
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        self.cache[log_dir][session_id].experiment_filters.filters = filters
+    def set_experiment_filters(self, gs_log_dir: str, session_id: str, filters: List[str]):
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        self.cache[gs_log_dir][session_id].experiment_filters.filters = filters
 
-    def get_experiment_filters(self, log_dir: str, session_id: str) -> List[str]:
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        return self.cache[log_dir][session_id].experiment_filters.filters
+    def get_experiment_filters(self, gs_log_dir: str, session_id: str) -> List[str]:
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        return self.cache[gs_log_dir][session_id].experiment_filters.filters
 
-    def set_graph_smoothing_factor(self, log_dir: str, session_id: str, smoothing_factor: float):
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        self.cache[log_dir][session_id].graph_settings.smoothing_factor = smoothing_factor
+    def set_graph_smoothing_factor(self, gs_log_dir: str, session_id: str, smoothing_factor: float):
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        self.cache[gs_log_dir][session_id].graph_settings.smoothing_factor = smoothing_factor
 
-    def get_graph_smoothing_factor(self, log_dir: str, session_id: str):
-        if log_dir not in self.cache or session_id not in self.cache[log_dir]:
-            self.invalidate_cache(log_dir, session_id)
-        return self.cache[log_dir][session_id].graph_settings.smoothing_factor
+    def get_graph_smoothing_factor(self, gs_log_dir: str, session_id: str):
+        if gs_log_dir not in self.cache or session_id not in self.cache[gs_log_dir]:
+            self.invalidate_cache(gs_log_dir, session_id)
+        return self.cache[gs_log_dir][session_id].graph_settings.smoothing_factor
 
 
 #################################################################

@@ -24,21 +24,21 @@ def gen_marks(min, max, step):
     return marks
 
 
-def get_selected_smoothing(log_dir, session_id):
-    smoothing = GraphController.get_smoothing_factor(log_dir, session_id)
+def get_selected_smoothing(gs_log_dir, session_id):
+    smoothing = GraphController.get_smoothing_factor(gs_log_dir, session_id)
     smoothing = 0.0 if smoothing is None else smoothing
     return smoothing
 
 
-def render_graphs(log_dir: str, session_id: str):
+def render_graphs(gs_log_dir: str, session_id: str):
     # determine the metrics to be displayed in the graph
-    metrics_df = MetricsController.get_metrics_settings(log_dir, session_id)
+    metrics_df = MetricsController.get_metrics_settings(gs_log_dir, session_id)
 
     # get the selected exps in the table
     # exp_ids = server_storage.get(session_id, "grid_search_table")["experiment_id"].values.tolist()
 
     # get smoothing weight
-    smoothing = get_selected_smoothing(log_dir, session_id)
+    smoothing = get_selected_smoothing(gs_log_dir, session_id)
 
     graphs = create_graphs(gs_loader, metrics_df, smoothing)
     graph_groups = create_graph_groups(graphs)
@@ -83,7 +83,7 @@ def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
 # @app.callback(Output('graph-grids', 'children'),
 #               [Input('graph-interval-component', 'n_intervals')])
 # def update_metrics(n):
-#     return render_graphs(Settings.log_dir)
+#     return render_graphs(Settings.gs_log_dir)
 
 
 def create_html_graph_grid_from_group(graph_group: List[dcc.Graph], num_cols=3) -> html.Div:
@@ -124,15 +124,15 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
-def create_graphs(log_dir: str, session_id: str) -> List[dcc.Graph]:
-    metric_tags = MetricsController.get_selected_metrics(log_dir, session_id)
-    df_experiments = ExperimentController.get_experiments_df(log_dir, session_id)
-    df_metrics = MetricsController.get_metrics_settings(log_dir, session_id)
-    smoothing = get_selected_smoothing(log_dir, session_id)
+def create_graphs(gs_log_dir: str, session_id: str) -> List[dcc.Graph]:
+    metric_tags = MetricsController.get_selected_metrics(gs_log_dir, session_id)
+    df_experiments = ExperimentController.get_experiments_df(gs_log_dir, session_id)
+    df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
+    smoothing = get_selected_smoothing(gs_log_dir, session_id)
 
     return [
-        create_graph_with_std(metric_tag, df_experiments, MetricsController.get_metric_setting_by_metric_tag(log_dir, session_id, metric_tag, ["Grouping param"]),
-                              smoothing) if MetricsController.filter_metrics_settings(log_dir, session_id, "Std_band", "y")
+        create_graph_with_std(metric_tag, df_experiments, MetricsController.get_metric_setting_by_metric_tag(gs_log_dir, session_id, metric_tag, ["Grouping param"]),
+                              smoothing) if MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Std_band", "y")
         else create_graph_with_line_plot(metric_tag, gs_loader, smoothing) for metric_tag in metric_tags]
 
 
@@ -249,6 +249,6 @@ def get_deviations(data):
 @app.callback(
     Output('hidden-div-placeholder-2', "children"),
     [Input("session-id", "children"), Input('smoothing-slider', 'value')], Input("hidden-log-dir", "children"))
-def settings_callback(session_id, smoothing, log_dir):
-    GraphController.set_smoothing_factor(log_dir, session_id, smoothing)
+def settings_callback(session_id, smoothing, gs_log_dir):
+    GraphController.set_smoothing_factor(gs_log_dir, session_id, smoothing)
     return html.Div("")

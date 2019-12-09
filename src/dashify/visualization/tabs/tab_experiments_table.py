@@ -4,9 +4,9 @@ from dashify.visualization.app import app
 from dashify.visualization.data_controllers import ExperimentController
 
 
-def render_table(log_dir: str, session_id: str):
-    df_experiments = ExperimentController.get_experiments_df(log_dir, session_id)
-    filters = ExperimentController.get_experiment_filters_string(log_dir, session_id)
+def render_table(gs_log_dir: str, session_id: str):
+    df_experiments = ExperimentController.get_experiments_df(gs_log_dir, session_id)
+    filters = ExperimentController.get_experiment_filters_string(gs_log_dir, session_id)
     return dash_table.DataTable(
         id='table-filtering-be',
         columns=[
@@ -20,7 +20,7 @@ def render_table(log_dir: str, session_id: str):
 @app.callback(
     Output('table-filtering-be', "data"),
     [Input('table-filtering-be', "filter_query"), Input("hidden-log-dir", "children"), Input("session-id", "children")])
-def update_table(filters, log_dir, session_id):
-    ExperimentController.set_experiment_filters(log_dir, session_id, filters.split(" && "))
-    df_experiments = ExperimentController.get_experiments_df(log_dir, session_id)
+def update_table(filters, gs_log_dir, session_id):
+    ExperimentController.set_experiment_filters(gs_log_dir, session_id, filters.split(" && "))
+    df_experiments = ExperimentController.get_experiments_df(gs_log_dir, session_id)
     return df_experiments.to_dict('records')

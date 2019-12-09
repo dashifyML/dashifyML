@@ -5,13 +5,13 @@ import pandas as pd
 
 
 class GridSearchResult:
-    def __init__(self, log_dir: str, experiments: List[Experiment] = None):
+    def __init__(self, gs_log_dir: str, experiments: List[Experiment] = None):
         """
         Dataclass for storing all the experiments of a grid search.
-        :param log_dir: Experiments' logging directory of the grid search
+        :param gs_log_dir: Experiments' logging directory of the grid search
         :param experiments: List of experiments
         """
-        self.log_dir = log_dir
+        self.gs_log_dir = gs_log_dir
         if experiments is None:
             experiments = []
         self.experiments = experiments

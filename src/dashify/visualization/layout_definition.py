@@ -8,12 +8,12 @@ from dashify.visualization.app import app
 import uuid
 
 
-def get_layout(log_dir):
+def get_layout(gs_log_dir):
     layout = html.Div(children=[
         html.H1(children='D-a-s-h-i-f-y'),
 
-        html.Div(children=f"analyzing {log_dir}", id="log-dir"),
-        html.Div(children=f"{log_dir}", id="hidden-log-dir", style={'display': 'none'}),
+        html.Div(children=f"analyzing {gs_log_dir}", id="log-dir"),
+        html.Div(children=f"{gs_log_dir}", id="hidden-log-dir", style={'display': 'none'}),
 
         dcc.Tabs(id="tabs", value='tabs', children=[
             dcc.Tab(label='Settings', value='tab-settings'),
@@ -31,23 +31,23 @@ def get_layout(log_dir):
     return layout
 
 
-def get_log_dir(layout):
+def get_gs_log_dir(layout):
     return layout.children[2].children
 
 
 @app.callback(Output('tabs-content', 'children'),
               [Input('tabs', 'value'), Input("session-id", "children"), Input("hidden-log-dir", "children")])
-def render_content(tab, session_id, log_dir):
+def render_content(tab, session_id, gs_log_dir):
     if tab == 'tab-settings':
         return html.Div([
-            render_settings(log_dir, session_id)
+            render_settings(gs_log_dir, session_id)
         ])
     elif tab == 'tab-table':
         return html.Div([
-            render_table(log_dir, session_id)
+            render_table(gs_log_dir, session_id)
         ])
     elif tab == 'tab-graphs':
-        return html.Div(children=render_graphs(session_id, log_dir), id="graph-grids")
+        return html.Div(children=render_graphs(session_id, gs_log_dir), id="graph-grids")
         pass
 
 
