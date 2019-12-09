@@ -1,7 +1,5 @@
 import dash_html_components as html
 import os
-from dashify.data_import.data_reader import GridSearchLoader, Experiment
-from dashify.visualization.storage.in_memory import server_storage
 from typing import List, Dict
 import operator
 import numpy as np
@@ -13,38 +11,34 @@ from plotly.colors import DEFAULT_PLOTLY_COLORS
 from dashify.visualization.app import app
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
+from dashify.visualization.data_controllers import GraphController, MetricsController, ExperimentController
 
 
 def gen_marks(min, max, step):
     marks = {}
-    for i in np.arange(min, max+1, step):
+    for i in np.arange(min, max + 1, step):
         if i % max == 0:
-            marks[int(i)] = str(round(i,2))
+            marks[int(i)] = str(round(i, 2))
         else:
-            marks[i] = str(round(i,2))
+            marks[i] = str(round(i, 2))
     return marks
 
 
-def get_selected_smoothing(session_id):
-    smoothing = server_storage.get(session_id, "Smoothing")
+def get_selected_smoothing(log_dir, session_id):
+    smoothing = GraphController.get_smoothing_factor(log_dir, session_id)
     smoothing = 0.0 if smoothing is None else smoothing
     return smoothing
 
 
-def render_graphs(session_id: str, log_dir: str):
-
+def render_graphs(log_dir: str, session_id: str):
     # determine the metrics to be displayed in the graph
-    metrics_df = server_storage.get(session_id, "Metrics")
+    metrics_df = MetricsController.get_metrics_settings(log_dir, session_id)
 
     # get the selected exps in the table
-    exp_ids = server_storage.get(session_id, "grid_search_table")["experiment_id"].values.tolist()
+    # exp_ids = server_storage.get(session_id, "grid_search_table")["experiment_id"].values.tolist()
 
     # get smoothing weight
-    smoothing = get_selected_smoothing(session_id)
-
-    # filter
-    gs_loader = GridSearchLoader(log_dir)
-    gs_loader.filter_experiments(exp_ids)
+    smoothing = get_selected_smoothing(log_dir, session_id)
 
     graphs = create_graphs(gs_loader, metrics_df, smoothing)
     graph_groups = create_graph_groups(graphs)
@@ -52,7 +46,7 @@ def render_graphs(session_id: str, log_dir: str):
 
     interval = dcc.Interval(
         id='graph-interval-component',
-        interval=10*1000,  # in milliseconds
+        interval=10 * 1000,  # in milliseconds
         n_intervals=0
     )
     grids.append(interval)
@@ -62,13 +56,13 @@ def render_graphs(session_id: str, log_dir: str):
         html.H4("Graph Settings"),
         html.P("Smoothing"),
         html.Div(
-            children= [dcc.Slider(
+            children=[dcc.Slider(
                 id="smoothing-slider",
                 min=0,
                 max=1,
                 value=smoothing,
                 step=1e-2,
-                marks=gen_marks(0,1,0.2),
+                marks=gen_marks(0, 1, 0.2),
             )], style={"width": "30%"}
         )
 
@@ -79,7 +73,8 @@ def render_graphs(session_id: str, log_dir: str):
 
 
 def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
-    grids = [create_html_graph_grid_from_group(graph_group, num_cols=num_cols) for key, graph_group in graph_groups.items()]
+    grids = [create_html_graph_grid_from_group(graph_group, num_cols=num_cols) for key, graph_group in
+             graph_groups.items()]
     headlines = [html.H4(key.upper()) for key in graph_groups.keys()]
     tab_content = list(reduce(operator.add, zip(headlines, grids)))
     return tab_content
@@ -129,32 +124,15 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
-def is_std_selected(metrics_df, metric_tag):
-    if metrics_df[metrics_df["metrics"] == metric_tag]["Std_band"].iloc[0] == "y":
-        return True
-    else:
-        return False
-
-
-def is_metric_selected(metrics_df, metric_tag):
-    if metrics_df[metrics_df["metrics"] == metric_tag]["Selected"].iloc[0] == "y":
-        return True
-    else:
-        return False
-
-
-def get_selected_group_by_param(metrics_df, metric_tag):
-    return metrics_df[metrics_df["metrics"] == metric_tag]["Grouping parameter"].iloc[0]
-
-
-def create_graphs(gs_loader: GridSearchLoader, metrics_df: DataFrame, smoothing: float) -> List[dcc.Graph]:
-    metric_tags = gs_loader.get_experiment(gs_loader.get_experiment_ids()[0]).metrics.keys()
-
-    # filter the metrics based on selection
-    metric_tags = [metric_tag for metric_tag in metric_tags if is_metric_selected(metrics_df, metric_tag)]
+def create_graphs(log_dir: str, session_id: str) -> List[dcc.Graph]:
+    metric_tags = MetricsController.get_selected_metrics(log_dir, session_id)
+    df_experiments = ExperimentController.get_experiments_df(log_dir, session_id)
+    df_metrics = MetricsController.get_metrics_settings(log_dir, session_id)
+    smoothing = get_selected_smoothing(log_dir, session_id)
 
     return [
-        create_graph_with_std(metric_tag, gs_loader, get_selected_group_by_param(metrics_df, metric_tag), smoothing) if is_std_selected(metrics_df, metric_tag)
+        create_graph_with_std(metric_tag, df_experiments, MetricsController.get_metric_setting_by_metric_tag(log_dir, session_id, metric_tag, ["Grouping param"]),
+                              smoothing) if MetricsController.filter_metrics_settings(log_dir, session_id, "Std_band", "y")
         else create_graph_with_line_plot(metric_tag, gs_loader, smoothing) for metric_tag in metric_tags]
 
 
@@ -183,8 +161,8 @@ def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader, sm
     return g
 
 
-def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str, smoothing: float) -> dcc.Graph:
-
+def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str,
+                          smoothing: float) -> dcc.Graph:
     def prepare_data(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str) -> List:
         exps = [gs_loader.get_experiment(exp_id) for exp_id in gs_loader.get_experiment_ids()]
         aggregator = DataAggregator(experiments=exps, smoothing=smoothing)
@@ -202,9 +180,7 @@ def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader, group_by
 
 
 def get_std_figure(title, data_groups, colors):
-
     def get_band_traces(name, data, color):
-
         # calculate bounds
         mean_data, ucb_data, lcb_data = get_deviations(data)
 
@@ -219,7 +195,7 @@ def get_std_figure(title, data_groups, colors):
             fillcolor=color,
             fill='tonexty',
             legendgroup=name,
-            showlegend=False,)
+            showlegend=False, )
 
         trace = go.Scatter(
             name=name,
@@ -239,7 +215,7 @@ def get_std_figure(title, data_groups, colors):
             line=dict(width=0),
             mode='lines',
             legendgroup=name,
-            showlegend=False,)
+            showlegend=False, )
 
         # Trace order can be important
         # with continuous error bars
@@ -247,7 +223,8 @@ def get_std_figure(title, data_groups, colors):
 
         return trace_data
 
-    trace_data = list(reduce(lambda x, y: x+get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), colors), []))
+    trace_data = list(
+        reduce(lambda x, y: x + get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), colors), []))
     fig = go.Figure(data=trace_data, layout={
         'plot_bgcolor': '#ffffff',
         'showlegend': True
@@ -257,7 +234,7 @@ def get_std_figure(title, data_groups, colors):
     fig.update_layout(
         title={
             'text': title,
-            'x':0.5,
+            'x': 0.5,
             'xanchor': 'center',
             'yanchor': 'top'})
 
@@ -266,12 +243,12 @@ def get_std_figure(title, data_groups, colors):
 
 def get_deviations(data):
     m, sd = np.mean(data, axis=0), np.std(data, axis=0)
-    return m, m-sd, m+sd
+    return m, m - sd, m + sd
 
 
 @app.callback(
     Output('hidden-div-placeholder-2', "children"),
-    [Input("session-id", "children"), Input('smoothing-slider', 'value')])
-def settings_callback(session_id, smoothing):
-    server_storage.insert(session_id, "Smoothing", smoothing)
+    [Input("session-id", "children"), Input('smoothing-slider', 'value')], Input("hidden-log-dir", "children"))
+def settings_callback(session_id, smoothing, log_dir):
+    GraphController.set_smoothing_factor(log_dir, session_id, smoothing)
     return html.Div("")
