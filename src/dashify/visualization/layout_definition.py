@@ -2,7 +2,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 # from dashify.visualization.tabs.tab_graph_grids import render_graphs
-from dashify.visualization.tabs.tab_gs_table import render_table
+from dashify.visualization.tabs.tab_experiments_table import render_table
 from dashify.visualization.tabs.tab_settings import render_settings
 from dashify.visualization.app import app
 import uuid

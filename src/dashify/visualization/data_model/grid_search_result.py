@@ -58,7 +58,6 @@ class GridSearchResult:
         for experiment in self.experiments:
             metrics.append(GridSearchResult._flatten_dict(experiment.metrics))
             configs.append(GridSearchResult._flatten_dict(experiment.config))
-        col_sorting = list(metrics[0].keys())
         df = pd.concat([pd.DataFrame(configs), pd.DataFrame(metrics)], axis=1)
         return df
 
