@@ -92,9 +92,10 @@ class ExperimentController:
         return ExperimentController.get_experiments_df(gs_log_dir, session_id)["experiment_id"].tolist()
 
     @staticmethod
-    def get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id) -> pd.DataFrame:
+    def get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id, metric_tag=None) -> pd.DataFrame:
         df = ExperimentController.get_experiments_df(gs_log_dir, session_id, False)
-        return df[df["experiment_id"] == exp_id]
+        df = df[df["experiment_id"] == exp_id]
+        return df if metric_tag is None else df[metric_tag].values[0]
 
     @staticmethod
     def _process_experiments_df(df_experiments: pd.DataFrame,

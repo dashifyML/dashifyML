@@ -110,7 +110,7 @@ def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: st
 
     def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
         # TBD: can create a controller
-        data = ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, experiment_id)[metric_tag].iloc[0]
+        data = ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, experiment_id, metric_tag)
         data = DataAggregator.smooth(data, smoothing)
         dict_data = {
             "experiment_id": experiment_id,
