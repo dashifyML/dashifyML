@@ -5,7 +5,7 @@ import numpy as np
 
 class DataAggregator:
     def __init__(self, experiments_df: List[DataFrame], smoothing=0.0):
-        self.data_df = self._get_combined_df(experiments_df)
+        self.data_df = DataAggregator._get_combined_df(experiments_df)
         self.smoothing = smoothing
 
     @staticmethod
@@ -22,7 +22,7 @@ class DataAggregator:
         grouped_dict = {}
         for param_name, param_group in grouped:
             data_series = param_group[metric_tag].values.tolist()
-            data = [self.smooth(data, self.smoothing) for data in data_series]
+            data = [DataAggregator.smooth(data, self.smoothing) for data in data_series]
             grouped_dict[f"Group: {group_by_param} with {param_name}"] = np.array(data)
         return grouped_dict
 
