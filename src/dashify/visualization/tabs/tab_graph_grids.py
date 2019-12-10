@@ -12,9 +12,7 @@ from dashify.visualization.plotting.utils import generate_marks, get_band_graph,
 
 
 def render_graphs(gs_log_dir: str, session_id: str):
-    # get smoothing weight
-    smoothing = get_selected_smoothing(gs_log_dir, session_id)
-
+    smoothing_weight = GraphController.get_smoothing_factor(gs_log_dir, session_id)
     graphs = create_graphs(gs_log_dir, session_id)
     graph_groups = create_graph_groups(graphs)
     grids = create_grids(graph_groups)
@@ -35,7 +33,7 @@ def render_graphs(gs_log_dir: str, session_id: str):
                 id="smoothing-slider",
                 min=0,
                 max=1,
-                value=smoothing,
+                value=smoothing_weight,
                 step=1e-2,
                 marks=generate_marks(0, 1, 0.2),
             )], style={"width": "30%"}
@@ -98,36 +96,17 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
-# TBD - move to controllers
-def get_selected_smoothing(gs_log_dir, session_id):
-    smoothing = GraphController.get_smoothing_factor(gs_log_dir, session_id)
-    smoothing = 0.0 if smoothing is None else smoothing
-    return smoothing
-
-
-# TBD: move to controller
-def get_selected_param(gs_log_dir, session_id, metric_tag):
-    return str(MetricsController.get_metric_setting_by_metric_tag(gs_log_dir, session_id, metric_tag, ["Grouping parameter"]).iloc[0].values[0])
-
-
-# TBD move to controller
-def is_std_selected(gs_log_dir, session_id, metric_tag):
-    settings_df = MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Std_band", "y")
-    settings_df = settings_df[settings_df["metrics"] == metric_tag]
-    return settings_df.shape[0] > 0
-
-
 def create_graphs(gs_log_dir: str, session_id: str) -> List[dcc.Graph]:
     metric_tags = MetricsController.get_selected_metrics(gs_log_dir, session_id)
 
     return [
         create_graph_with_bands(gs_log_dir, session_id, metric_tag)
-        if is_std_selected(gs_log_dir, session_id, metric_tag)
+        if MetricsController.is_band_enabled_for_metric(gs_log_dir, session_id, metric_tag)
         else create_graph_with_line_plot(gs_log_dir, session_id, metric_tag) for metric_tag in metric_tags]
 
 
 def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: str) -> dcc.Graph:
-    smoothing = get_selected_smoothing(gs_log_dir, session_id)
+    smoothing = GraphController.get_smoothing_factor(gs_log_dir, session_id)
 
     def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
         # TBD: can create a controller
@@ -149,10 +128,10 @@ def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: st
 
 
 def create_graph_with_bands(gs_log_dir: str, session_id: str, metric_tag: str) -> dcc.Graph:
-    smoothing = get_selected_smoothing(gs_log_dir, session_id)
-    group_by_param = get_selected_param(gs_log_dir, session_id, metric_tag)
+    smoothing = GraphController.get_smoothing_factor(gs_log_dir, session_id)
+    group_by_param = MetricsController.get_metric_setting_by_metric_tag(gs_log_dir, session_id, metric_tag, "Grouping parameter")
 
-    def prepare_data(metric_tag: str) -> List:
+    def prepare_data(metric_tag: str) -> Dict:
         experiment_ids = ExperimentController.get_experiment_ids(gs_log_dir, session_id)
         exps = [ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id)
                 for exp_id in experiment_ids]

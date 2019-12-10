@@ -8,7 +8,9 @@ from dashify.visualization.controllers.cache_controller import ExperimentFilters
 class GraphController:
     @staticmethod
     def get_smoothing_factor(gs_log_dir: str, session_id: str) -> float:
-        return cache_controller.get_graph_smoothing_factor(gs_log_dir, session_id)
+        smoothing_factor = cache_controller.get_graph_smoothing_factor(gs_log_dir, session_id)
+        smoothing_factor = 0.0 if smoothing_factor is None else smoothing_factor
+        return smoothing_factor
 
     @staticmethod
     def set_smoothing_factor(gs_log_dir: str, session_id: str, smoothing_factor: float):
@@ -34,10 +36,16 @@ class MetricsController:
         return df_metrics[df_metrics[filter_col] == filter_value]
 
     @staticmethod
-    def get_metric_setting_by_metric_tag(gs_log_dir: str, session_id: str, metric_tag: str, cols: List[str] = None):
+    def is_band_enabled_for_metric(gs_log_dir, session_id, metric_tag):
+        settings_df = MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Std_band", "y")
+        settings_df = settings_df[settings_df["metrics"] == metric_tag]
+        return settings_df.shape[0] > 0
+
+    @staticmethod
+    def get_metric_setting_by_metric_tag(gs_log_dir: str, session_id: str, metric_tag: str, setting_col) -> str:
         df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
-        row = df_metrics[df_metrics["metrics"] == metric_tag]
-        return row if cols is None else row[cols]
+        setting = df_metrics[df_metrics["metrics"] == metric_tag][setting_col].values[0]
+        return setting
 
 
 class ConfigController:
