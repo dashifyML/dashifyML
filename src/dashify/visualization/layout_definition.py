@@ -47,8 +47,7 @@ def render_content(tab, session_id, gs_log_dir):
             render_table(gs_log_dir, session_id)
         ])
     elif tab == 'tab-graphs':
-        return html.Div(children=render_graphs(session_id, gs_log_dir), id="graph-grids")
-        pass
+        return html.Div(children=render_graphs(gs_log_dir, session_id), id="graph-grids")
 
 
 

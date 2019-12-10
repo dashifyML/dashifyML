@@ -1,7 +1,7 @@
 from dash.dependencies import Input, Output
 import dash_table
 from dashify.visualization.app import app
-from dashify.visualization.data_controllers import ExperimentController
+from dashify.visualization.controllers.data_controllers import ExperimentController
 
 
 def render_table(gs_log_dir: str, session_id: str):

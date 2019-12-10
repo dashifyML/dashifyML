@@ -1,6 +1,6 @@
 import dash_html_components as html
 import dash_core_components as dcc
-from dashify.visualization.data_controllers import MetricsController, ConfigController
+from dashify.visualization.controllers.data_controllers import MetricsController, ConfigController
 import dash_table
 from dash.dependencies import Input, Output
 from dashify.visualization.app import app

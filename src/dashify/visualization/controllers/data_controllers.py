@@ -1,8 +1,8 @@
-from dashify.visualization.cache_controller import cache_controller
+from dashify.visualization.controllers.cache_controller import cache_controller
 import pandas as pd
 from typing import List, Tuple
 import numpy as np
-from dashify.visualization.cache_controller import ExperimentFilters
+from dashify.visualization.controllers.cache_controller import ExperimentFilters
 
 
 class GraphController:
@@ -56,15 +56,16 @@ class ConfigController:
 
 class ExperimentController:
     @staticmethod
-    def get_experiments_df(gs_log_dir: str, session_id: str) -> pd.DataFrame:
+    def get_experiments_df(gs_log_dir: str, session_id: str, aggregate: bool = True) -> pd.DataFrame:
         metrics_settings = cache_controller.get_metrics_settings(gs_log_dir, session_id)
         config_cols = cache_controller.get_selected_configs_settings(gs_log_dir, session_id)
         experiment_filters = cache_controller.get_experiment_filters(gs_log_dir, session_id)
         df_experiments = cache_controller.get_gs_results(gs_log_dir, session_id).to_pandas_dataframe()
         return ExperimentController._process_experiments_df(df_experiments=df_experiments,
-                                                            config_cols=config_cols,
+                                                            config_cols=config_cols+["experiment_id"],
                                                             metrics_settings=metrics_settings,
-                                                            experiment_filters=experiment_filters)
+                                                            experiment_filters=experiment_filters,
+                                                            aggregate=aggregate)
 
     @staticmethod
     def set_experiment_filters(gs_log_dir: str, session_id: str, filters: str):
@@ -79,15 +80,28 @@ class ExperimentController:
         return cache_controller.get_experiment_filters(gs_log_dir, session_id)
 
     @staticmethod
-    def _process_experiments_df(df_experiments: pd.DataFrame, config_cols: List[str], metrics_settings: pd.DataFrame,
-                                experiment_filters: List[str]) -> pd.DataFrame:
+    def get_experiment_ids(gs_log_dir: str, session_id: str) -> List[str]:
+        return ExperimentController.get_experiments_df(gs_log_dir, session_id)["experiment_id"].tolist()
+
+    @staticmethod
+    def get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id) -> pd.DataFrame:
+        df = ExperimentController.get_experiments_df(gs_log_dir, session_id, False)
+        return df[df["experiment_id"] == exp_id]
+
+    @staticmethod
+    def _process_experiments_df(df_experiments: pd.DataFrame,
+                                config_cols: List[str],
+                                metrics_settings: pd.DataFrame,
+                                experiment_filters: List[str],
+                                aggregate: bool) -> pd.DataFrame:
         # filter those columns in the dataframe
         df_selected_metrics = metrics_settings[metrics_settings["Selected"] == "y"]
         metrics_cols = metrics_settings["metrics"].tolist()
         # set the columns of the gridsearch table
         df_experiments = ExperimentController._filter_columns(df_experiments, config_cols, metrics_cols)
         # apply aggregation function to the respective columns in the grid search table
-        df_experiments = ExperimentController._apply_aggregation_functions(df_experiments, df_selected_metrics)
+        if aggregate:
+            df_experiments = ExperimentController._apply_aggregation_functions(df_experiments, df_selected_metrics)
         # filter the respective experiment rows
         df_experiments = ExperimentController._apply_experiment_filters(df_experiments, experiment_filters)
         return df_experiments

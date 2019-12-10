@@ -11,7 +11,7 @@ from plotly.colors import DEFAULT_PLOTLY_COLORS
 from dashify.visualization.app import app
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
-from dashify.visualization.data_controllers import GraphController, MetricsController, ExperimentController
+from dashify.visualization.controllers.data_controllers import GraphController, MetricsController, ExperimentController
 
 
 def gen_marks(min, max, step):
@@ -31,16 +31,10 @@ def get_selected_smoothing(gs_log_dir, session_id):
 
 
 def render_graphs(gs_log_dir: str, session_id: str):
-    # determine the metrics to be displayed in the graph
-    metrics_df = MetricsController.get_metrics_settings(gs_log_dir, session_id)
-
-    # get the selected exps in the table
-    # exp_ids = server_storage.get(session_id, "grid_search_table")["experiment_id"].values.tolist()
-
     # get smoothing weight
     smoothing = get_selected_smoothing(gs_log_dir, session_id)
 
-    graphs = create_graphs(gs_loader, metrics_df, smoothing)
+    graphs = create_graphs(gs_log_dir, session_id)
     graph_groups = create_graph_groups(graphs)
     grids = create_grids(graph_groups)
 
@@ -124,35 +118,47 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
+def get_selected_param(gs_log_dir, session_id, metric_tag):
+    return str(MetricsController.get_metric_setting_by_metric_tag(gs_log_dir, session_id, metric_tag, ["Grouping parameter"]).iloc[0].values[0])
+
+
+def is_std_selected(gs_log_dir, session_id, metric_tag):
+    settings_df = MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Std_band", "y")
+    settings_df = settings_df[settings_df["metrics"] == metric_tag]
+    return settings_df.shape[0] > 0
+
+
 def create_graphs(gs_log_dir: str, session_id: str) -> List[dcc.Graph]:
     metric_tags = MetricsController.get_selected_metrics(gs_log_dir, session_id)
-    df_experiments = ExperimentController.get_experiments_df(gs_log_dir, session_id)
-    df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
-    smoothing = get_selected_smoothing(gs_log_dir, session_id)
 
     return [
-        create_graph_with_std(metric_tag, df_experiments, MetricsController.get_metric_setting_by_metric_tag(gs_log_dir, session_id, metric_tag, ["Grouping param"]),
-                              smoothing) if MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Std_band", "y")
-        else create_graph_with_line_plot(metric_tag, gs_loader, smoothing) for metric_tag in metric_tags]
+        create_graph_with_std(gs_log_dir, session_id, metric_tag)
+        if is_std_selected(gs_log_dir, session_id, metric_tag)
+        else create_graph_with_line_plot(gs_log_dir, session_id, metric_tag) for metric_tag in metric_tags]
 
 
-def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader, smoothing: float) -> dcc.Graph:
-    def prepare_single_data_series(experiment: Experiment, metric_tag: str) -> Dict:
-        y = experiment.metrics[metric_tag]
+def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: str) -> dcc.Graph:
+    # get smoothing factor
+    smoothing = get_selected_smoothing(gs_log_dir, session_id)
+
+    def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
+        y = ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, experiment_id)
+        y = y[metric_tag].iloc[0]
         y = DataAggregator.smooth(y, smoothing)
 
-        series = {"x": list(range(len(y))), 'y': y, 'type': 'linear', 'name': experiment.identifier}
+        series = {"x": list(range(len(y))), 'y': y, 'type': 'linear', 'name': experiment_id}
         return series
 
-    def prepare_data(metric_tag: str, gs_loader: GridSearchLoader) -> List:
-        experiment_ids = gs_loader.get_experiment_ids()
-        return [prepare_single_data_series(gs_loader.get_experiment(experiment_id), metric_tag=metric_tag) for
-                experiment_id in experiment_ids]
+    def prepare_data(metric_tag: str) -> List:
+        experiment_ids = ExperimentController.get_experiment_ids(gs_log_dir, session_id)
+        return [prepare_single_data_series(experiment_id=experiment_id,
+                                           metric_tag=metric_tag)
+                for experiment_id in experiment_ids]
 
     g = dcc.Graph(
         id=metric_tag,
         figure={
-            'data': prepare_data(metric_tag, gs_loader),
+            'data': prepare_data(metric_tag),
             'layout': {
                 'title': metric_tag,
             }
@@ -161,25 +167,32 @@ def create_graph_with_line_plot(metric_tag: str, gs_loader: GridSearchLoader, sm
     return g
 
 
-def create_graph_with_std(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str,
-                          smoothing: float) -> dcc.Graph:
-    def prepare_data(metric_tag: str, gs_loader: GridSearchLoader, group_by_param: str) -> List:
-        exps = [gs_loader.get_experiment(exp_id) for exp_id in gs_loader.get_experiment_ids()]
-        aggregator = DataAggregator(experiments=exps, smoothing=smoothing)
-        data = aggregator.group_by_param(metric_tag, group_by_param=group_by_param)
+def create_graph_with_std(gs_log_dir: str, session_id: str, metric_tag: str) -> dcc.Graph:
+    # get smoothing factor
+    smoothing = get_selected_smoothing(gs_log_dir, session_id)
+
+    # group by param
+    group_by_param = get_selected_param(gs_log_dir, session_id, metric_tag)
+
+    def prepare_data(metric_tag: str) -> List:
+        experiment_ids = ExperimentController.get_experiment_ids(gs_log_dir, session_id)
+        exps = [ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id)
+                for exp_id in experiment_ids]
+        aggregator = DataAggregator(experiments_df=exps, smoothing=smoothing)
+        data = aggregator.group_by_param(metric_tag, group_by_param)
         return data
 
     # aggregate data from all experiments based on group by param
-    data_groups = prepare_data(metric_tag, gs_loader, group_by_param)
+    data_groups = prepare_data(metric_tag)
 
     g = dcc.Graph(
         id=metric_tag,
-        figure=get_std_figure(metric_tag, data_groups, DEFAULT_PLOTLY_COLORS)
+        figure=get_std_figure(metric_tag, data_groups)
     )
     return g
 
 
-def get_std_figure(title, data_groups, colors):
+def get_std_figure(title, data_groups):
     def get_band_traces(name, data, color):
         # calculate bounds
         mean_data, ucb_data, lcb_data = get_deviations(data)
@@ -224,7 +237,7 @@ def get_std_figure(title, data_groups, colors):
         return trace_data
 
     trace_data = list(
-        reduce(lambda x, y: x + get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), colors), []))
+        reduce(lambda x, y: x + get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), DEFAULT_PLOTLY_COLORS), []))
     fig = go.Figure(data=trace_data, layout={
         'plot_bgcolor': '#ffffff',
         'showlegend': True
@@ -248,7 +261,7 @@ def get_deviations(data):
 
 @app.callback(
     Output('hidden-div-placeholder-2', "children"),
-    [Input("session-id", "children"), Input('smoothing-slider', 'value')], Input("hidden-log-dir", "children"))
+    [Input("session-id", "children"), Input('smoothing-slider', 'value'), Input("hidden-log-dir", "children")])
 def settings_callback(session_id, smoothing, gs_log_dir):
     GraphController.set_smoothing_factor(gs_log_dir, session_id, smoothing)
     return html.Div("")

@@ -61,7 +61,7 @@ class GridSearchResult:
             metrics.append(GridSearchResult._flatten_dict(experiment.metrics))
             configs.append(GridSearchResult._flatten_dict(experiment.config))
             experiment_ids.append({"experiment_id": experiment.identifier})
-        df = pd.concat([pd.DataFrame(configs), pd.DataFrame(metrics), experiment_ids], axis=1)
+        df = pd.concat([pd.DataFrame(configs), pd.DataFrame(metrics), pd.DataFrame(experiment_ids)], axis=1)
         return df
 
     @staticmethod
