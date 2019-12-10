@@ -16,7 +16,9 @@ class DataAggregator:
         return combined_df
 
     def group_by_param(self, metric_tag, group_by_param) -> Dict:
-        grouped = self.data_df.groupby([group_by_param])
+        df = self.data_df.copy()
+        df[group_by_param] = df[group_by_param].apply(str)
+        grouped = df.groupby([group_by_param])
         grouped_dict = {}
         for param_name, param_group in grouped:
             data_series = param_group[metric_tag].values.tolist()
