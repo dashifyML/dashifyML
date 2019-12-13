@@ -1,99 +1,143 @@
 from dashify.visualization.controllers.cache_controller import cache_controller
+from dashify.visualization.controllers.cache_controller import ExperimentFilters
+
 import pandas as pd
 from typing import List, Tuple
 import numpy as np
-from dashify.visualization.controllers.cache_controller import ExperimentFilters
+from typing import Optional
+import os
+
+
+class GridSearchController:
+    @staticmethod
+    def get_log_dir() -> str:
+        return cache_controller.log_dir
+
+    @staticmethod
+    def set_log_dir(log_dir: str, replace=False):
+        if cache_controller.log_dir is None or replace:
+            cache_controller.log_dir = log_dir
+            # TODO invalidate entire cache
+
+    @staticmethod
+    def get_gridsearch_ids():
+        log_dir = cache_controller.log_dir
+        return [name for name in os.listdir(log_dir) if os.path.isdir(os.path.join(log_dir, name))]
+
+    @staticmethod
+    def get_activated_grid_search_id(session_id: str) -> str:
+        activated_grid_search_id = cache_controller.get_activated_grid_search_id(session_id)
+        if activated_grid_search_id is None:
+            activated_grid_search_id = GridSearchController.get_gridsearch_ids()[0]
+            GridSearchController.set_activated_grid_search_id(session_id, activated_grid_search_id)
+        return activated_grid_search_id
+
+    @staticmethod
+    def set_activated_grid_search_id(session_id: str, grid_search_id):
+        cache_controller.activate_grid_search(session_id, grid_search_id)
 
 
 class GraphController:
     @staticmethod
-    def get_smoothing_factor(gs_log_dir: str, session_id: str) -> float:
-        smoothing_factor = cache_controller.get_graph_smoothing_factor(gs_log_dir, session_id)
+    def get_smoothing_factor(session_id: str) -> float:
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        smoothing_factor = cache_controller.get_graph_smoothing_factor(grid_search_id, session_id)
         smoothing_factor = 0.0 if smoothing_factor is None else smoothing_factor
         return smoothing_factor
 
     @staticmethod
-    def set_smoothing_factor(gs_log_dir: str, session_id: str, smoothing_factor: float):
-        cache_controller.set_graph_smoothing_factor(gs_log_dir, session_id, smoothing_factor)
+    def set_smoothing_factor(session_id: str, smoothing_factor: float):
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        cache_controller.set_graph_smoothing_factor(grid_search_id, session_id, smoothing_factor)
 
 
 class MetricsController:
     @staticmethod
-    def get_metrics_settings(gs_log_dir: str, session_id: str) -> pd.DataFrame:
-        return cache_controller.get_metrics_settings(gs_log_dir, session_id)
+    def get_metrics_settings(session_id: str) -> pd.DataFrame:
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        return cache_controller.get_metrics_settings(grid_search_id, session_id)
 
     @staticmethod
-    def set_metrics_settings(gs_log_dir: str, session_id: str, metrics_settings_table: pd.DataFrame):
-        cache_controller.set_metrics_settings(gs_log_dir, session_id, metrics_settings_table)
+    def set_metrics_settings(session_id: str, metrics_settings_table: pd.DataFrame):
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        cache_controller.set_metrics_settings(grid_search_id, session_id, metrics_settings_table)
 
     @staticmethod
-    def get_selected_metrics(gs_log_dir: str, session_id: str):
-        return MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Selected", "y")["metrics"]
+    def get_selected_metrics(session_id: str):
+        return MetricsController.filter_metrics_settings(session_id, "Selected", "y")["metrics"]
 
     @staticmethod
-    def filter_metrics_settings(gs_log_dir: str, session_id: str, filter_col: str, filter_value: object):
-        df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
+    def filter_metrics_settings(session_id: str, filter_col: str, filter_value: object):
+        df_metrics = MetricsController.get_metrics_settings(session_id)
         return df_metrics[df_metrics[filter_col] == filter_value]
 
     @staticmethod
-    def is_band_enabled_for_metric(gs_log_dir, session_id, metric_tag):
-        settings_df = MetricsController.filter_metrics_settings(gs_log_dir, session_id, "Std_band", "y")
+    def is_band_enabled_for_metric(session_id, metric_tag):
+        settings_df = MetricsController.filter_metrics_settings(session_id, "Std_band", "y")
         settings_df = settings_df[settings_df["metrics"] == metric_tag]
         return settings_df.shape[0] > 0
 
     @staticmethod
-    def get_metric_setting_by_metric_tag(gs_log_dir: str, session_id: str, metric_tag: str, setting_col) -> str:
-        df_metrics = MetricsController.get_metrics_settings(gs_log_dir, session_id)
+    def get_metric_setting_by_metric_tag(session_id: str, metric_tag: str, setting_col) -> str:
+        df_metrics = MetricsController.get_metrics_settings(session_id)
         setting = df_metrics[df_metrics["metrics"] == metric_tag][setting_col].values[0]
         return setting
 
 
 class ConfigController:
     @staticmethod
-    def get_configs_settings(gs_log_dir: str, session_id: str) -> List[str]:
-        return cache_controller.get_configs_settings(gs_log_dir, session_id)
+    def get_configs_settings(session_id: str) -> List[str]:
+        gridsearch_id = GridSearchController.get_activated_grid_search_id(session_id)
+        return cache_controller.get_configs_settings(gridsearch_id, session_id)
 
     @staticmethod
-    def get_selected_configs_settings(gs_log_dir: str, session_id: str) -> List[str]:
-        return cache_controller.get_selected_configs_settings(gs_log_dir, session_id)
+    def get_selected_configs_settings(session_id: str) -> List[str]:
+        gridsearch_id = GridSearchController.get_activated_grid_search_id(session_id)
+        selected_configs = cache_controller.get_selected_configs_settings(gridsearch_id, session_id)
+        return selected_configs
 
     @staticmethod
-    def set_selected_configs_settings(gs_log_dir: str, session_id: str, selected_configs: List[str]):
-        cache_controller.set_selected_configs_settings(gs_log_dir, session_id, selected_configs)
+    def set_selected_configs_settings(session_id: str, selected_configs: List[str]):
+        gridsearch_id = GridSearchController.get_activated_grid_search_id(session_id)
+        cache_controller.set_selected_configs_settings(gridsearch_id, session_id, selected_configs)
 
 
 class ExperimentController:
     @staticmethod
-    def get_experiments_df(gs_log_dir: str, session_id: str, aggregate: bool = True) -> pd.DataFrame:
-        metrics_settings = cache_controller.get_metrics_settings(gs_log_dir, session_id)
-        config_cols = cache_controller.get_selected_configs_settings(gs_log_dir, session_id)
-        experiment_filters = cache_controller.get_experiment_filters(gs_log_dir, session_id)
-        df_experiments = cache_controller.get_gs_results(gs_log_dir, session_id).to_pandas_dataframe()
+    def get_experiments_df(session_id: str, aggregate: bool = True) -> pd.DataFrame:
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        metrics_settings = cache_controller.get_metrics_settings(grid_search_id, session_id)
+        config_cols = cache_controller.get_selected_configs_settings(grid_search_id, session_id)
+        experiment_filters = cache_controller.get_experiment_filters(grid_search_id, session_id)
+        df_experiments = cache_controller.get_gs_results(grid_search_id, session_id).to_pandas_dataframe()
         return ExperimentController._process_experiments_df(df_experiments=df_experiments,
-                                                            config_cols=config_cols+["experiment_id"],
+                                                            config_cols=config_cols + ["experiment_id"],
                                                             metrics_settings=metrics_settings,
                                                             experiment_filters=experiment_filters,
                                                             aggregate=aggregate)
 
     @staticmethod
-    def set_experiment_filters(gs_log_dir: str, session_id: str, filters: str):
-        cache_controller.set_experiment_filters(gs_log_dir, session_id, filters)
+    def set_experiment_filters(session_id: str, filters: str):
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        cache_controller.set_experiment_filters(grid_search_id, session_id, filters)
 
     @staticmethod
-    def get_experiment_filters(gs_log_dir: str, session_id: str) -> str:
-        return cache_controller.get_experiment_filters(gs_log_dir, session_id)
+    def get_experiment_filters(session_id: str) -> str:
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        return cache_controller.get_experiment_filters(grid_search_id, session_id)
 
     @staticmethod
-    def get_experiment_filters_string(gs_log_dir: str, session_id: str) -> str:
-        return cache_controller.get_experiment_filters(gs_log_dir, session_id)
+    def get_experiment_filters_string(session_id: str) -> str:
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        return cache_controller.get_experiment_filters(grid_search_id, session_id)
 
     @staticmethod
-    def get_experiment_ids(gs_log_dir: str, session_id: str) -> List[str]:
-        return ExperimentController.get_experiments_df(gs_log_dir, session_id)["experiment_id"].tolist()
+    def get_experiment_ids(session_id: str) -> List[str]:
+        return ExperimentController.get_experiments_df(session_id)["experiment_id"].tolist()
 
     @staticmethod
-    def get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id, metric_tag=None) -> pd.DataFrame:
-        df = ExperimentController.get_experiments_df(gs_log_dir, session_id, False)
+    def get_experiment_data_by_experiment_id(session_id, exp_id, metric_tag=None) -> pd.DataFrame:
+        df = ExperimentController.get_experiments_df(session_id, False)
         df = df[df["experiment_id"] == exp_id]
         return df if metric_tag is None else df[metric_tag].values[0]
 
