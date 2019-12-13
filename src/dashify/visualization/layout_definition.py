@@ -8,24 +8,28 @@ from dashify.visualization.app import app
 import uuid
 from dashify.visualization.controllers.data_controllers import GridSearchController
 
-def get_layout(gs_log_dir):
-    layout = html.Div(children=[
-        html.H1(children='D-a-s-h-i-f-y', style={'text-align':'center'}),
-        html.Div(children=f"{gs_log_dir}", id="hidden-log-dir", style={'display': 'none'}),
 
-        dcc.Tabs(id="tabs", value='tabs', children=[
-            dcc.Tab(label='Settings', value='tab-settings'),
-            dcc.Tab(label='Table', value='tab-table'),
-            dcc.Tab(label='Graphs', value='tab-graphs'),
-        ]),
-        html.Div(id='tabs-content'),
-        # super ugly for session ids... but Dash wants it that way.
-        # https://dash.plot.ly/sharing-data-between-callbackstab_gridsearch_table
-        html.Div(str(uuid.uuid4()), id='session-id', style={'display': 'none'}),
-        # yet another ugly hack since callbacks always need an output defined...
-        html.Div(id="hidden-div-placeholder", style={"display": "none"}),
-        html.Div(id="hidden-div-placeholder-2", style={"display": "none"})
-    ])
+def get_layout(gs_log_dir):
+    title_row = html.Div(children=[html.Img(src='/assets/img/dashify_logo_2_scaled.png', id="dashify-logo")],
+                         id="title-row")
+    hidde_log_dir = html.Div(children=f"{gs_log_dir}", id="hidden-log-dir", style={'display': 'none'})
+    tabs = dcc.Tabs(id="tabs", value='tabs', children=[
+                                    dcc.Tab(label='Settings', value='tab-settings'),
+                                    dcc.Tab(label='Table', value='tab-table'),
+                                    dcc.Tab(label='Graphs', value='tab-graphs'),
+                                ])
+
+    layout = html.Div(children=[title_row,
+                                hidde_log_dir,
+                                tabs,
+                                html.Div(id='tabs-content'),
+                                # super ugly for session ids... but Dash wants it that way.
+                                # https://dash.plot.ly/sharing-data-between-callbackstab_gridsearch_table
+                                html.Div(str(uuid.uuid4()), id='session-id', style={'display': 'none'}),
+                                # yet another ugly hack since callbacks always need an output defined...
+                                html.Div(id="hidden-div-placeholder", style={"display": "none"}),
+                                html.Div(id="hidden-div-placeholder-2", style={"display": "none"})
+                                ])
     return layout
 
 
