@@ -1,0 +1,62 @@
+
+body {
+    margin: 0 !important;
+}
+#title-row {
+    background: #24292e;
+}
+
+#dashify-logo {
+    background: #24292e;
+    width: 12%;
+    margin: 0 auto;
+    display: table;
+    padding: 10px 0
+}
+
+.tab--selected.jsx-2137964197{
+    background: white;
+    border-bottom: 5px solid #fa9619 !important;
+    font-weight: bold !important;
+    border-top: 0px solid #1975FA !important;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+
+.tab.jsx-2137964197 {
+    font-weight: bold !important;
+    color:gray;
+    background:#f5f5f5;
+}
+
+#tabs-content {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+#table-metrics {
+padding-bottom:15px
+}
+
+#gs-dropdown {
+    width:20%;
+    display: inline-table;
+}
+
+#log-dir {
+    display: inline-table;
+    padding-right: 10px;
+    font-size: 1.3em;
+}
+
+#configs-metrics-row {
+    padding-top: 40px;
+}
+
+#tabs-parent {
+  position: -webkit-sticky !important; /* Safari */
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+}
