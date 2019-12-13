@@ -5,7 +5,7 @@ from dashify.visualization.controllers.data_controllers import ExperimentControl
 
 
 def render_table(session_id: str):
-    df_experiments = ExperimentController.get_experiments_df(session_id)
+    df_experiments = ExperimentController.get_experiments_df(session_id, aggregate=True)
     filters = ExperimentController.get_experiment_filters_string(session_id)
     return dash_table.DataTable(
         id='table-filtering-be',

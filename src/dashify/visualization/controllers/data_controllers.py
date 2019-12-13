@@ -4,7 +4,6 @@ from dashify.visualization.controllers.cache_controller import ExperimentFilters
 import pandas as pd
 from typing import List, Tuple
 import numpy as np
-from typing import Optional
 import os
 
 
@@ -149,7 +148,7 @@ class ExperimentController:
                                 aggregate: bool) -> pd.DataFrame:
         # filter those columns in the dataframe
         df_selected_metrics = metrics_settings[metrics_settings["Selected"] == "y"]
-        metrics_cols = metrics_settings["metrics"].tolist()
+        metrics_cols = df_selected_metrics["metrics"].tolist()
         # set the columns of the gridsearch table
         df_experiments = ExperimentController._filter_columns(df_experiments, config_cols, metrics_cols)
         # apply aggregation function to the respective columns in the grid search table
