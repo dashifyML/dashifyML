@@ -13,8 +13,9 @@ def render_settings(session_id: str):
     config_settings = html.Div(children=[create_configs_settings(session_id)], id="configs-wrapper")
     metrics_settings_table =  html.Div(children=[create_metrics_settings_table(session_id)], id="metrics-wrapper")
     log_dir_div = html.Div(children=f"analyzing {GridSearchController.get_log_dir()}", id="log-dir")
-    content = html.Div(children=[html.Div([html.H3("What to track?"), log_dir_div, gs_dropdown], className="row"),
-                                 html.Div([config_settings, metrics_settings_table], className="row")]
+    log_dir_row = html.Div(children=[log_dir_div, gs_dropdown])
+    content = html.Div(children=[html.Div([html.H3("What to track?"), log_dir_row], className="row"),
+                                 html.Div([config_settings, metrics_settings_table], className="row", id="configs-metrics-row")]
                        )
     return content
 

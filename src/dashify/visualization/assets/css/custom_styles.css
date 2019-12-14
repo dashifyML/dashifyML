@@ -1,0 +1,75 @@
+
+body {
+    margin: 0 !important;
+}
+#title-row {
+    background: #24292e;
+    padding: 10px 0px 0px 10px;
+    height: 67px;
+}
+
+#dashify-logo {
+    background: #24292e;
+    width: 12%;
+    margin: 0 auto;
+    display: inline-block;
+}
+
+.tab--selected.jsx-2137964197{
+    background: #24292e !important;
+    border-bottom: 5px solid #fa9619 !important;
+    border-top: 0px solid #1975FA !important;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    padding: 30px;
+    color: white !important;
+
+}
+
+.tab.jsx-2137964197 {
+    font-weight: normal !important;
+    color: white !important;
+    background: #24292e !important;
+    padding: 30px;
+    border-left:0px !important;
+    border-right:0px !important;
+    border-top:0px !important;
+    padding-bottom: 1px;
+}
+
+#tabs-content {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+#table-metrics {
+padding-bottom:15px
+}
+
+#gs-dropdown {
+    width:20%;
+    display: inline-table;
+}
+
+#log-dir {
+    display: inline-table;
+    padding-right: 10px;
+    font-size: 1.3em;
+}
+
+#configs-metrics-row {
+    padding-top: 40px;
+}
+
+#tabs-parent {
+    display: inline-block;
+    margin-left:200px;
+}
+
+#tab-button-graphs, #tab-button-table, #tab-button-settings {
+    padding: 0;
+    margin-right: 100px;
+    font-size: 2em;
+    line-height: 1.2
+}
