@@ -48,7 +48,10 @@ def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
     grids = [create_html_graph_grid_from_group(graph_group, num_cols=num_cols) for key, graph_group in
              graph_groups.items()]
     headlines = [html.H4(key.upper()) for key in graph_groups.keys()]
-    tab_content = list(reduce(operator.add, zip(headlines, grids)))
+    if grids:
+        tab_content = list(reduce(operator.add, zip(headlines, grids)))
+    else:
+        tab_content = headlines
     return tab_content
 
 
