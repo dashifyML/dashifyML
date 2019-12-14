@@ -16,6 +16,12 @@ def generate_marks(min, max, step):
     return marks
 
 
+def make_transparent(color, transparency):
+    r, g, b = color.split("(")[1].split(")")[0].split(",")
+    color = f"rgba({r}, {g}, {b}, {transparency})"
+    return color
+
+
 def get_std_figure(title, data_groups):
     def get_band_traces(name, data, color):
         # calculate bounds
@@ -27,12 +33,11 @@ def get_std_figure(title, data_groups):
             x=x,
             y=ucb_data,
             mode='lines',
-            marker=dict(color="#444"),
             line=dict(width=0),
-            fillcolor=color,
+            fillcolor=make_transparent(color, transparency=0.5),
             fill='tonexty',
             legendgroup=name,
-            showlegend=False, )
+            showlegend=False)
 
         trace = go.Scatter(
             name=name,
@@ -40,7 +45,7 @@ def get_std_figure(title, data_groups):
             y=mean_data,
             mode='lines',
             line=dict(color=color),
-            fillcolor=color,
+            fillcolor=make_transparent(color, transparency=0.5),
             fill='tonexty',
             legendgroup=name)
 
@@ -48,15 +53,16 @@ def get_std_figure(title, data_groups):
             name=name,
             x=x,
             y=lcb_data,
-            fillcolor=color,
             line=dict(width=0),
             mode='lines',
             legendgroup=name,
-            showlegend=False, )
+            showlegend=False)
 
         # Trace order can be important
         # with continuous error bars
-        trace_data = [lower_bound, trace, upper_bound]
+        trace_data = [lower_bound,
+                      trace,
+                      upper_bound]
 
         return trace_data
 
