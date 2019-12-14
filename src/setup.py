@@ -12,4 +12,5 @@ setup(
     ],
     python_requires=">=3.0",
     scripts=['starter_scripts/dashify-vis'],
+    data_files=[('dashify/visualization/assets/css', ['base_styles.css', 'custom_styles.css'])]
 )

@@ -7,7 +7,7 @@ import functools
 
 
 class InMemoryCacheController:
-    def __init__(self, log_dir):
+    def __init__(self, log_dir: str = None):
         self.cache: Dict[str, Dict[str, SessionStorage]] = dict()
         self._log_dir = log_dir
 
@@ -250,4 +250,4 @@ class SessionStorage:
         self._active = value
 
 
-cache_controller = InMemoryCacheController("/home/mluebberin/repositories/github/dashify/sample_gs/")
+cache_controller = InMemoryCacheController()
