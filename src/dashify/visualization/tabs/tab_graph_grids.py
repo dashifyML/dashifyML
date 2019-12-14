@@ -9,6 +9,8 @@ import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from dashify.visualization.controllers.data_controllers import GraphController, MetricsController, ExperimentController
 from dashify.visualization.plotting.utils import generate_marks, get_band_graph, get_line_graph
+import multiprocessing as mp
+from itertools import repeat
 
 
 def render_graphs(session_id: str):
@@ -96,20 +98,24 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
+def create_graph_by_selection(session_id, metric_tag):
+    graph = create_graph_with_bands(session_id, metric_tag) if MetricsController.is_band_enabled_for_metric(session_id, metric_tag) \
+        else create_graph_with_line_plot(session_id, metric_tag)
+    return graph
+
+
 def create_graphs(session_id: str) -> List[dcc.Graph]:
     metric_tags = MetricsController.get_selected_metrics(session_id)
-
-    return [
-        create_graph_with_bands(session_id, metric_tag)
-        if MetricsController.is_band_enabled_for_metric(session_id, metric_tag)
-        else create_graph_with_line_plot(session_id, metric_tag) for metric_tag in metric_tags]
+    pool = mp.Pool(processes=mp.cpu_count())
+    graphs = pool.starmap(create_graph_by_selection, zip(repeat(session_id, len(metric_tags)), metric_tags))
+    pool.close()
+    return graphs
 
 
 def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
     smoothing = GraphController.get_smoothing_factor(session_id)
 
     def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
-        # TBD: can create a controller
         data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_id, metric_tag, reload=True)
         data = DataAggregator.smooth(data, smoothing)
         dict_data = {
