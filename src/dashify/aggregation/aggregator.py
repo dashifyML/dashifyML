@@ -23,8 +23,18 @@ class DataAggregator:
         for param_name, param_group in grouped:
             data_series = param_group[metric_tag].values.tolist()
             data = [DataAggregator.smooth(data, self.smoothing) for data in data_series]
+            data = DataAggregator.clip_sequences(data)
             grouped_dict[f"Group: {group_by_param} with {param_name}"] = np.array(data)
         return grouped_dict
+
+    @staticmethod
+    def clip_sequences(sequences):
+        min_length = np.inf
+        for sequence in sequences:
+            length = len(sequence)
+            min_length =length if length < min_length else min_length
+        sequences = [sequence[:min_length] for sequence in sequences]
+        return sequences
 
     @staticmethod
     def smooth(values: List[float], weight: float) -> List[float]:
