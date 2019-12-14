@@ -14,7 +14,11 @@ def parse_args():
         return gs_log_dir
 
 
-if __name__ == '__main__':
-    gs_log_dir = parse_args()
+def run_server(gs_log_dir):
     app.layout = get_layout(gs_log_dir)
     app.run_server(debug=True)
+
+
+if __name__ == '__main__':
+    gs_log_dir = parse_args()
+    run_server(gs_log_dir)

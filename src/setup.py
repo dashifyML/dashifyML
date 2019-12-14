@@ -10,5 +10,6 @@ setup(
         "dash_daq",
         "Flask-Caching"
     ],
-    python_requires=">=3.0"
+    python_requires=">=3.0",
+    scripts=['starter_scripts/dashify-vis'],
 )

@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+from dashify.visualization.run_server import run_server, parse_args
+
+gs_log_dir = parse_args()
+run_server(gs_log_dir)
+
