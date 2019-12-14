@@ -12,17 +12,15 @@ from dashify.visualization.plotting.utils import generate_marks, get_band_graph,
 
 
 def render_graphs(session_id: str):
-    smoothing_weight = GraphController.get_smoothing_factor(session_id)
     graphs = create_graphs(session_id)
     graph_groups = create_graph_groups(graphs)
-    grids = create_grids(graph_groups)
+    graph_content = html.Div(children=create_grids(graph_groups), id="graph-content")
 
     interval = dcc.Interval(
         id='graph-interval-component',
         interval=10 * 1000,  # in milliseconds
         n_intervals=0
     )
-    grids.append(interval)
 
     # Slider for smoothing
     graph_settings = [
@@ -33,23 +31,22 @@ def render_graphs(session_id: str):
                 id="smoothing-slider",
                 min=0,
                 max=1,
-                value=smoothing_weight,
+                value=GraphController.get_smoothing_factor(session_id),
                 step=1e-2,
                 marks=generate_marks(0, 1, 0.2),
             )], style={"width": "30%"}
         )
-
     ]
-    grids = graph_settings + grids
-    return grids
+    tab_content = html.Div(children=[*graph_settings, graph_content, interval])
+    return tab_content
 
 
 def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
     grids = [create_html_graph_grid_from_group(graph_group, num_cols=num_cols) for key, graph_group in
              graph_groups.items()]
     headlines = [html.H4(key.upper()) for key in graph_groups.keys()]
-    tab_content = list(reduce(operator.add, zip(headlines, grids)))
-    return tab_content
+    graph_content = list(reduce(operator.add, zip(headlines, grids)))
+    return graph_content
 
 
 # @app.callback(Output('graph-grids', 'children'),
@@ -110,7 +107,7 @@ def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
 
     def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
         # TBD: can create a controller
-        data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_id, metric_tag)
+        data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_id, metric_tag, reload=True)
         data = DataAggregator.smooth(data, smoothing)
         dict_data = {
             "experiment_id": experiment_id,
@@ -146,8 +143,10 @@ def create_graph_with_bands(session_id: str, metric_tag: str) -> dcc.Graph:
 
 
 @app.callback(
-    Output('hidden-div-placeholder-2', "children"),
-    [Input("session-id", "children"), Input('smoothing-slider', 'value')])
-def settings_callback(session_id, smoothing):
+    Output('graph-content', "children"),
+    [Input("session-id", "children"), Input('smoothing-slider', 'value'), Input('graph-interval-component', 'n_intervals')])
+def settings_callback(session_id, smoothing, interval):
     GraphController.set_smoothing_factor(session_id, smoothing)
-    return html.Div("")
+    graphs = create_graphs(session_id)
+    graph_groups = create_graph_groups(graphs)
+    return create_grids(graph_groups)

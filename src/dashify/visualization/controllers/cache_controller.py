@@ -60,9 +60,12 @@ class InMemoryCacheController:
         for gs_id, session_storage in self.cache[session_id].items():
             self.cache[session_id][gs_id].active = grid_search_id == gs_id
 
-    def get_gs_results(self, grid_search_id: str, session_id: str) -> GridSearchResult:
+    def get_gs_results(self, grid_search_id: str, session_id: str, reload=False) -> GridSearchResult:
         if session_id not in self.cache or grid_search_id not in self.cache[session_id]:
             self.invalidate_cache(grid_search_id, session_id)
+        elif reload:
+            gs_result = LocalDataLoader.get_grid_search_results(os.path.join(self.log_dir, grid_search_id))
+            self.cache[session_id][grid_search_id].gridsearch_result = gs_result
         return self.cache[session_id][grid_search_id].gridsearch_result
 
     def get_configs_settings(self, grid_search_id: str, session_id: str) -> List[str]:

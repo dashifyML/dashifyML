@@ -103,12 +103,12 @@ class ConfigController:
 
 class ExperimentController:
     @staticmethod
-    def get_experiments_df(session_id: str, aggregate: bool = True) -> pd.DataFrame:
+    def get_experiments_df(session_id: str, aggregate: bool = True, reload=False) -> pd.DataFrame:
         grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
         metrics_settings = cache_controller.get_metrics_settings(grid_search_id, session_id)
         config_cols = cache_controller.get_selected_configs_settings(grid_search_id, session_id)
         experiment_filters = cache_controller.get_experiment_filters(grid_search_id, session_id)
-        df_experiments = cache_controller.get_gs_results(grid_search_id, session_id).to_pandas_dataframe()
+        df_experiments = cache_controller.get_gs_results(grid_search_id, session_id, reload=reload).to_pandas_dataframe()
         return ExperimentController._process_experiments_df(df_experiments=df_experiments,
                                                             config_cols=config_cols + ["experiment_id"],
                                                             metrics_settings=metrics_settings,
@@ -135,8 +135,8 @@ class ExperimentController:
         return ExperimentController.get_experiments_df(session_id)["experiment_id"].tolist()
 
     @staticmethod
-    def get_experiment_data_by_experiment_id(session_id, exp_id, metric_tag=None) -> pd.DataFrame:
-        df = ExperimentController.get_experiments_df(session_id, False)
+    def get_experiment_data_by_experiment_id(session_id, exp_id, metric_tag=None, reload=False) -> pd.DataFrame:
+        df = ExperimentController.get_experiments_df(session_id, False, reload=reload)
         df = df[df["experiment_id"] == exp_id]
         return df if metric_tag is None else df[metric_tag].values[0]
 
