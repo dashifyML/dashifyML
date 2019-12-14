@@ -1,23 +1,35 @@
 import dash_html_components as html
 import dash_core_components as dcc
-from dashify.visualization.controllers.data_controllers import MetricsController, ConfigController
+from dashify.visualization.controllers.data_controllers import MetricsController, ConfigController, GridSearchController
 import dash_table
 from dash.dependencies import Input, Output
 from dashify.visualization.app import app
 import pandas as pd
+from dash import no_update
 
 
-def render_settings(gs_log_dir: str, session_id: str):
-    config_settings = create_configs_settings(gs_log_dir, session_id)
-    metrics_settings_table = create_metrics_settings_table(gs_log_dir, session_id)
-    content = html.Div(
-        children=[html.H3("What to track?"), html.Div([config_settings, metrics_settings_table], className="row")])
+def render_settings(session_id: str):
+    gs_dropdown = create_grid_search_dropdown(session_id)
+    config_settings = html.Div(children=[create_configs_settings(session_id)], id="configs-wrapper")
+    metrics_settings_table =  html.Div(children=[create_metrics_settings_table(session_id)], id="metrics-wrapper")
+    log_dir_div = html.Div(children=f"analyzing {GridSearchController.get_log_dir()}", id="log-dir")
+    content = html.Div(children=[html.Div([html.H3("What to track?"), log_dir_div, gs_dropdown], className="row"),
+                                 html.Div([config_settings, metrics_settings_table], className="row")]
+                       )
     return content
 
 
-def create_configs_settings(gs_log_dir: str, session_id: str):
-    options = [{'label': key, 'value': key} for key in ConfigController.get_configs_settings(gs_log_dir, session_id)]
-    selected_elements = ConfigController.get_selected_configs_settings(gs_log_dir, session_id)
+def create_grid_search_dropdown(session_id: str):
+    gridsearch_ids = GridSearchController.get_gridsearch_ids()
+    active_gridsearch_id = GridSearchController.get_activated_grid_search_id(session_id)
+    return dcc.Dropdown(options=[{'label': gridsearch_id, 'value': gridsearch_id} for gridsearch_id in gridsearch_ids],
+                        value=active_gridsearch_id,
+                        id="gs-dropdown")
+
+
+def create_configs_settings(session_id: str):
+    options = [{'label': key, 'value': key} for key in ConfigController.get_configs_settings(session_id)]
+    selected_elements = ConfigController.get_selected_configs_settings(session_id)
     settings = html.Div(
         children=[html.H5("Configs"),
                   dcc.Checklist(
@@ -30,10 +42,10 @@ def create_configs_settings(gs_log_dir: str, session_id: str):
     return settings
 
 
-def create_metrics_settings_table(gs_log_dir: str, session_id: str):
+def create_metrics_settings_table(session_id: str):
     agg_fun_list = ["min", "mean", "max"]
-    df_metrics_settings = MetricsController.get_metrics_settings(gs_log_dir, session_id)
-
+    df_metrics_settings = MetricsController.get_metrics_settings(session_id)
+    selected_configs = ConfigController.get_selected_configs_settings(session_id)
     table = html.Div([
         html.H5("Metrics"),
         dash_table.DataTable(
@@ -69,7 +81,7 @@ def create_metrics_settings_table(gs_log_dir: str, session_id: str):
                 'Grouping parameter': {
                     'options': [
                         {'label': i, 'value': i}
-                        for i in ConfigController.get_selected_configs_settings(gs_log_dir, session_id)
+                        for i in selected_configs
                     ]
                 }
             }
@@ -81,13 +93,36 @@ def create_metrics_settings_table(gs_log_dir: str, session_id: str):
 
 
 @app.callback(
+    Output('configs-wrapper', 'children'),
+    [Input("session-id", "children"), Input('gs-dropdown', 'value')])
+def update_config_callback(session_id, grid_search_id):
+    # store selected grid search id
+    if grid_search_id is not None:
+        GridSearchController.set_activated_grid_search_id(session_id, grid_search_id)
+        config_content = create_configs_settings(session_id)
+        return config_content
+    return no_update
+
+@app.callback(
+    Output('metrics-wrapper', 'children'),
+    [Input("session-id", "children"), Input('gs-dropdown', 'value')])
+def update_metrics_callback(session_id, grid_search_id):
+    # store selected grid search id
+    if grid_search_id is not None:
+        GridSearchController.set_activated_grid_search_id(session_id, grid_search_id)   # TODO this is updated in update_config_callback as well...
+        metrics_content = create_metrics_settings_table(session_id)
+        return metrics_content
+    return no_update
+
+
+@app.callback(
     Output('hidden-div-placeholder', "children"),
     [Input('Configs', "value"), Input("session-id", "children"), Input('table-metrics', 'data'),
-     Input('table-metrics', 'columns'), Input("hidden-log-dir", "children"),])
-def settings_callback(selected_configs, session_id, metric_rows, metric_colums, gs_log_dir):
+     Input('table-metrics', 'columns')])
+def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
     # store config
-    ConfigController.set_selected_configs_settings(gs_log_dir, session_id, selected_configs)
+    ConfigController.set_selected_configs_settings(session_id, selected_configs)
     # store metrics
     df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
-    MetricsController.set_metrics_settings(gs_log_dir, session_id, df)
+    MetricsController.set_metrics_settings(session_id, df)
     return html.Div("")

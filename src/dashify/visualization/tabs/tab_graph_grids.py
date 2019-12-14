@@ -11,9 +11,9 @@ from dashify.visualization.controllers.data_controllers import GraphController, 
 from dashify.visualization.plotting.utils import generate_marks, get_band_graph, get_line_graph
 
 
-def render_graphs(gs_log_dir: str, session_id: str):
-    smoothing_weight = GraphController.get_smoothing_factor(gs_log_dir, session_id)
-    graphs = create_graphs(gs_log_dir, session_id)
+def render_graphs(session_id: str):
+    smoothing_weight = GraphController.get_smoothing_factor(session_id)
+    graphs = create_graphs(session_id)
     graph_groups = create_graph_groups(graphs)
     grids = create_grids(graph_groups)
 
@@ -96,21 +96,21 @@ def create_graph_groups(graphs: List[dcc.Graph], split_fun=None) -> Dict[str, Li
     return graph_dict
 
 
-def create_graphs(gs_log_dir: str, session_id: str) -> List[dcc.Graph]:
-    metric_tags = MetricsController.get_selected_metrics(gs_log_dir, session_id)
+def create_graphs(session_id: str) -> List[dcc.Graph]:
+    metric_tags = MetricsController.get_selected_metrics(session_id)
 
     return [
-        create_graph_with_bands(gs_log_dir, session_id, metric_tag)
-        if MetricsController.is_band_enabled_for_metric(gs_log_dir, session_id, metric_tag)
-        else create_graph_with_line_plot(gs_log_dir, session_id, metric_tag) for metric_tag in metric_tags]
+        create_graph_with_bands(session_id, metric_tag)
+        if MetricsController.is_band_enabled_for_metric(session_id, metric_tag)
+        else create_graph_with_line_plot(session_id, metric_tag) for metric_tag in metric_tags]
 
 
-def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: str) -> dcc.Graph:
-    smoothing = GraphController.get_smoothing_factor(gs_log_dir, session_id)
+def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
+    smoothing = GraphController.get_smoothing_factor(session_id)
 
     def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
         # TBD: can create a controller
-        data = ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, experiment_id, metric_tag)
+        data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_id, metric_tag)
         data = DataAggregator.smooth(data, smoothing)
         dict_data = {
             "experiment_id": experiment_id,
@@ -119,7 +119,7 @@ def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: st
         return dict_data
 
     series = []
-    experiment_ids = ExperimentController.get_experiment_ids(gs_log_dir, session_id)
+    experiment_ids = ExperimentController.get_experiment_ids(session_id)
     for experiment_id in experiment_ids:
         series.append(prepare_single_data_series(experiment_id, metric_tag))
 
@@ -127,13 +127,13 @@ def create_graph_with_line_plot(gs_log_dir: str, session_id: str, metric_tag: st
     return line_graph
 
 
-def create_graph_with_bands(gs_log_dir: str, session_id: str, metric_tag: str) -> dcc.Graph:
-    smoothing = GraphController.get_smoothing_factor(gs_log_dir, session_id)
-    group_by_param = MetricsController.get_metric_setting_by_metric_tag(gs_log_dir, session_id, metric_tag, "Grouping parameter")
+def create_graph_with_bands(session_id: str, metric_tag: str) -> dcc.Graph:
+    smoothing = GraphController.get_smoothing_factor(session_id)
+    group_by_param = MetricsController.get_metric_setting_by_metric_tag(session_id, metric_tag, "Grouping parameter")
 
     def prepare_data(metric_tag: str) -> Dict:
-        experiment_ids = ExperimentController.get_experiment_ids(gs_log_dir, session_id)
-        exps = [ExperimentController.get_experiment_data_by_experiment_id(gs_log_dir, session_id, exp_id)
+        experiment_ids = ExperimentController.get_experiment_ids(session_id)
+        exps = [ExperimentController.get_experiment_data_by_experiment_id(session_id, exp_id)
                 for exp_id in experiment_ids]
         aggregator = DataAggregator(experiments_df=exps, smoothing=smoothing)
         data = aggregator.group_by_param(metric_tag, group_by_param)
@@ -147,7 +147,7 @@ def create_graph_with_bands(gs_log_dir: str, session_id: str, metric_tag: str) -
 
 @app.callback(
     Output('hidden-div-placeholder-2', "children"),
-    [Input("session-id", "children"), Input('smoothing-slider', 'value'), Input("hidden-log-dir", "children")])
-def settings_callback(session_id, smoothing, gs_log_dir):
-    GraphController.set_smoothing_factor(gs_log_dir, session_id, smoothing)
+    [Input("session-id", "children"), Input('smoothing-slider', 'value')])
+def settings_callback(session_id, smoothing):
+    GraphController.set_smoothing_factor(session_id, smoothing)
     return html.Div("")
