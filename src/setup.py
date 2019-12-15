@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 setup(
     name='dashify',
     version='0.0.1',
-    packages=['dashify'],
+    packages=find_packages(),
     package_dir={'dashify': 'dashify'},
     package_data={'dashify': ['visualization/assets/css/*.css',
                               'visualization/assets/img/*.png',
