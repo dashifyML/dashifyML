@@ -38,6 +38,9 @@ class DataAggregator:
 
     @staticmethod
     def smooth(values: List[float], weight: float) -> List[float]:
+        if len(values) <= 1:
+            return values
+
         last = values[0]
         smoothed = []
         for point in values:
