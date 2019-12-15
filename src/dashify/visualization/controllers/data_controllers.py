@@ -145,11 +145,10 @@ class ExperimentController:
         return ExperimentController.get_experiments_df(session_id)["experiment_id"].tolist()
 
     @staticmethod
-    def get_experiment_data_by_experiment_id(session_id, exp_id, metric_tag=None, reload=False) -> pd.DataFrame:
+    def get_experiment_data_by_experiment_id(session_id: str, exp_ids: List[str], metric_tag: List[str]=None, reload: bool=False) -> pd.DataFrame:
         df = ExperimentController.get_experiments_df(session_id, False, reload=reload)
-        df = df[df["experiment_id"] == exp_id]
-        data = df if metric_tag is None else df[metric_tag].values[0]
-        data = data if isinstance(data, list) else []
+        df = df[df["experiment_id"].isin(exp_ids)]
+        data = df if metric_tag is None else df[metric_tag+["experiment_id"]]
         return data
 
     @staticmethod

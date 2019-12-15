@@ -9,6 +9,7 @@ import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from dashify.visualization.controllers.data_controllers import GraphController, MetricsController, ExperimentController
 from dashify.visualization.plotting.utils import generate_marks, get_band_graph, get_line_graph
+from tqdm import tqdm
 import multiprocessing as mp
 from itertools import repeat
 
@@ -20,7 +21,7 @@ def render_graphs(session_id: str):
 
     interval = dcc.Interval(
         id='graph-interval-component',
-        interval=10 * 1000,  # in milliseconds
+        interval=1000 * 1000,  # in milliseconds
         n_intervals=0
     )
 
@@ -106,6 +107,10 @@ def create_graph_by_selection(session_id, metric_tag):
 
 def create_graphs(session_id: str) -> List[dcc.Graph]:
     metric_tags = MetricsController.get_selected_metrics(session_id)
+
+    # refresh the data once
+    ExperimentController.refresh(session_id)
+
     pool = mp.Pool(processes=mp.cpu_count())
     graphs = pool.starmap(create_graph_by_selection, zip(repeat(session_id, len(metric_tags)), metric_tags))
     pool.close()
@@ -114,9 +119,12 @@ def create_graphs(session_id: str) -> List[dcc.Graph]:
 
 def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
     smoothing = GraphController.get_smoothing_factor(session_id)
+    experiment_ids = ExperimentController.get_experiment_ids(session_id)
+    metric_data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_ids, [metric_tag])
 
-    def prepare_single_data_series(experiment_id: str, metric_tag: str) -> Dict:
-        data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_id, metric_tag, reload=True)
+    def prepare_single_data_series(experiment_id: str) -> Dict:
+        data = metric_data[metric_data["experiment_id"] == experiment_id][metric_tag].values[0]
+        data = data if isinstance(data, list) else []
         data = DataAggregator.smooth(data, smoothing)
         dict_data = {
             "experiment_id": experiment_id,
@@ -125,9 +133,8 @@ def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
         return dict_data
 
     series = []
-    experiment_ids = ExperimentController.get_experiment_ids(session_id)
-    for experiment_id in experiment_ids:
-        series.append(prepare_single_data_series(experiment_id, metric_tag))
+    for experiment_id in tqdm(experiment_ids):
+        series.append(prepare_single_data_series(experiment_id))
 
     line_graph = get_line_graph(id=metric_tag, series=series, title=metric_tag)
     return line_graph
@@ -136,12 +143,11 @@ def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
 def create_graph_with_bands(session_id: str, metric_tag: str) -> dcc.Graph:
     smoothing = GraphController.get_smoothing_factor(session_id)
     group_by_param = MetricsController.get_metric_setting_by_metric_tag(session_id, metric_tag, "Grouping parameter")
+    experiment_ids = ExperimentController.get_experiment_ids(session_id)
+    metric_data_df = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_ids)
 
     def prepare_data(metric_tag: str) -> Dict:
-        experiment_ids = ExperimentController.get_experiment_ids(session_id)
-        exps = [ExperimentController.get_experiment_data_by_experiment_id(session_id, exp_id)
-                for exp_id in experiment_ids]
-        aggregator = DataAggregator(experiments_df=exps, smoothing=smoothing)
+        aggregator = DataAggregator(experiments_df=metric_data_df, smoothing=smoothing)
         data = aggregator.group_by_param(metric_tag, group_by_param)
         return data
 
