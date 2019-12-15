@@ -116,6 +116,16 @@ class ExperimentController:
                                                             aggregate=aggregate)
 
     @staticmethod
+    def refresh(session_id):
+        """
+        Refreshes the grid search results once (as it writes to InMemory cache already)
+        Any views which need live data can call refresh() once when required and access data (subsequently) using controllers with reload = False
+
+        """
+        grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+        _ = cache_controller.get_gs_results(grid_search_id, session_id, reload=True).to_pandas_dataframe()
+
+    @staticmethod
     def set_experiment_filters(session_id: str, filters: str):
         grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
         cache_controller.set_experiment_filters(grid_search_id, session_id, filters)
@@ -138,7 +148,9 @@ class ExperimentController:
     def get_experiment_data_by_experiment_id(session_id, exp_id, metric_tag=None, reload=False) -> pd.DataFrame:
         df = ExperimentController.get_experiments_df(session_id, False, reload=reload)
         df = df[df["experiment_id"] == exp_id]
-        return df if metric_tag is None else df[metric_tag].values[0]
+        data = df if metric_tag is None else df[metric_tag].values[0]
+        data = data if isinstance(data, list) else []
+        return data
 
     @staticmethod
     def _process_experiments_df(df_experiments: pd.DataFrame,
