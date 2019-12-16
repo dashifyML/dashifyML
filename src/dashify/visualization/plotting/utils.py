@@ -1,9 +1,9 @@
 import numpy as np
 import plotly.graph_objs as go
 from plotly.colors import DEFAULT_PLOTLY_COLORS
-from functools import reduce
 import dash_core_components as dcc
 from typing import List, Dict
+from functools import reduce
 
 
 def generate_marks(min, max, step):
@@ -84,9 +84,27 @@ def get_std_figure(title, data_groups):
     return fig
 
 
-def get_deviations(data):
-    m, sd = np.mean(data, axis=0), np.std(data, axis=0)
-    return m, m - sd, m + sd
+def get_deviations(series: List):
+    max_len = reduce(lambda x, y: max(x, len(y)), series, 0)
+    n_series = len(series)
+
+    mean_series = np.zeros(max_len)
+    std_series = np.zeros(max_len)
+    for seq_ix in range(max_len):
+        series_at_ix = []
+        for series_ix in range(n_series):
+            try:
+                data_point = series[series_ix].pop(seq_ix)
+                series_at_ix.append(data_point)
+            except:
+                pass
+
+        # compute mean and std
+        mean, sd = np.mean(series_at_ix), np.std(series_at_ix)
+        mean_series[seq_ix] = mean
+        std_series[seq_ix] = sd
+
+    return mean_series, mean_series-std_series, mean_series + std_series
 
 
 def get_line_graph(id, series: List[Dict], title) -> dcc.Graph:
