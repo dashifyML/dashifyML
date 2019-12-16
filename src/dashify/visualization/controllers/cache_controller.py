@@ -149,7 +149,7 @@ class ConfigSettings:
 class MetricsSettings:
     _supported_aggregation_function = ["max", "min", "mean"]
     _supported_std_band_values = ["n", "y"]
-    _supported_selected_band_values = ["y", "n"]
+    _supported_selected_band_values = ["n", "y"]
 
     def __init__(self, tracked_metrics: List[str], config_settings: ConfigSettings):
         self._metrics_settings_table = pd.DataFrame.from_dict({"metrics": tracked_metrics})
