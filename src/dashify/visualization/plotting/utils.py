@@ -94,7 +94,7 @@ def get_deviations(series: List):
         series_at_ix = []
         for series_ix in range(n_series):
             try:
-                data_point = series[series_ix].pop(seq_ix)
+                data_point = series[series_ix][seq_ix]
                 series_at_ix.append(data_point)
             except:
                 pass

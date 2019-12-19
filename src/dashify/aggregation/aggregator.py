@@ -16,7 +16,7 @@ class DataAggregator:
         for param_name, param_group in grouped:
             data_series = param_group[metric_tag].values.tolist()
             data = [DataAggregator.smooth(data, self.smoothing) if isinstance(data, list) else [] for data in data_series]
-            grouped_dict[f"Group: {group_by_param} with {param_name}"] = np.array(data)
+            grouped_dict[f"Group: {group_by_param} with {param_name}"] = data
         return grouped_dict
 
     @staticmethod
