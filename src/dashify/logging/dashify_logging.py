@@ -184,6 +184,7 @@ class ExperimentTracking(object):
                             try:
                                 run_fun(config, device, experiment_info)  # here we call the scripts run method
                             except Exception as e:
+                                print(str(e), file=sys.stderr)
                                 traceback.print_tb(e.__traceback__, file=sys.stderr)
             return
         return decorate_run
