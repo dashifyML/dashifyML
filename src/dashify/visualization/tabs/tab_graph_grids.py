@@ -40,6 +40,7 @@ def render_graphs(session_id: str):
             )], style={"width": "30%"}
         )
     ]
+
     tab_content = html.Div(children=[*graph_settings, graph_content, interval])
     return tab_content
 
@@ -64,7 +65,10 @@ def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
 def create_html_graph_grid_from_group(graph_group: List[dcc.Graph], num_cols=3) -> html.Div:
     def create_element(graph, i):
         return html.Div([
-            graph
+            graph,
+            html.Div([
+                html.Button("Download as .json", style={"display": "inline-block"})
+                ], style={"text-align": "center"}),
         ], className="three columns", style={"width": "30%"})
 
     elements = [create_element(graph, i) for i, graph in enumerate(graph_group)]
@@ -159,7 +163,9 @@ def create_graph_with_bands(session_id: str, metric_tag: str) -> dcc.Graph:
 
 @app.callback(
     Output('graph-content', "children"),
-    [Input("session-id", "children"), Input('smoothing-slider', 'value'), Input('graph-interval-component', 'n_intervals')])
+    [Input("session-id", "children"), Input('smoothing-slider', 'value'),
+     Input('graph-interval-component', 'n_intervals')]
+)
 def settings_callback(session_id, smoothing, interval):
     GraphController.set_smoothing_factor(session_id, smoothing)
     graphs = create_graphs(session_id)
