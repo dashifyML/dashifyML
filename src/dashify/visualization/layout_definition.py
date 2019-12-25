@@ -19,7 +19,6 @@ def get_layout(gs_log_dir):
                          id="title-row")
     hidde_log_dir = html.Div(children=f"{gs_log_dir}", id="hidden-log-dir", style={'display': 'none'})
 
-
     layout = html.Div(children=[title_row,
                                 hidde_log_dir,
                                 html.Div(id='tabs-content'),
@@ -45,7 +44,11 @@ def render_content(tab, session_id, log_dir):
         ])
     elif tab == 'tab-table':
         return html.Div([
-            render_table(session_id)
+            render_table(session_id),
+            html.Div([
+                html.Br(),
+                html.Button("Download as .csv", id="download-df", style={"display": "inline-block"})
+            ], style={"text-align": "center"}),
         ])
     elif tab == 'tab-graphs':
         pass
