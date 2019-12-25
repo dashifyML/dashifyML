@@ -81,6 +81,8 @@ def get_std_figure(title, data_groups):
             'xanchor': 'center',
             'yanchor': 'top'})
 
+    fig.update_layout(legend_orientation="h")
+
     return fig
 
 
