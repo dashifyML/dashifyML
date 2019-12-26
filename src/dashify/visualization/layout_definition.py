@@ -32,6 +32,16 @@ def get_layout(gs_log_dir):
     return layout
 
 
+def render_download_button():
+    return html.Div([
+        html.Br(),
+        html.A(html.Button("Download as .csv"),
+               id="download-exp-link",
+               download="experiments_data.csv",
+               style={"display": "inline-block"})
+    ], style={"text-align": "center"})
+
+
 @app.callback(Output('tabs-content', 'children'),
               [Input('tabs', 'value'), Input("session-id", "children"), Input("hidden-log-dir", "children")])
 def render_content(tab, session_id, log_dir):
@@ -45,10 +55,7 @@ def render_content(tab, session_id, log_dir):
     elif tab == 'tab-table':
         return html.Div([
             render_table(session_id),
-            html.Div([
-                html.Br(),
-                html.Button("Download as .csv", id="download-df", style={"display": "inline-block"})
-            ], style={"text-align": "center"}),
+            render_download_button()
         ])
     elif tab == 'tab-graphs':
         pass

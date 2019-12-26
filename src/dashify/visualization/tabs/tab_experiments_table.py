@@ -3,6 +3,7 @@ import dash_table
 from dashify.visualization.app import app
 from dashify.visualization.controllers.data_controllers import ExperimentController
 import dash
+import urllib
 
 
 def render_table(session_id: str):
@@ -20,15 +21,19 @@ def render_table(session_id: str):
 
 @app.callback(
     Output('table-filtering-be', "data"),
-    [Input('table-filtering-be', "filter_query"), Input("session-id", "children"), Input("download-df", "n_clicks")])
-def update_table(filters, session_id, button_clicks):
+    [Input('table-filtering-be', "filter_query"), Input("session-id", "children")])
+def update_table(filters, session_id):
     ExperimentController.set_experiment_filters(session_id, filters.split(" && "))
     df_experiments = ExperimentController.get_experiments_df(session_id)
-
-    # for download of experiments data
-    context = dash.callback_context
-    triggered_input = context.triggered[0]["prop_id"].split(".")[0] if context.triggered[0]["value"] is not None else None
-    if triggered_input == "download-df":
-        print("Download routine ...")
-
     return df_experiments.to_dict('records')
+
+
+@app.callback(
+    dash.dependencies.Output('download-exp-link', 'href'),
+    [Input('table-filtering-be', "filter_query"), Input("session-id", "children")])
+def update_download_link(filters, session_id):
+    ExperimentController.set_experiment_filters(session_id, filters.split(" && "))
+    df_experiments = ExperimentController.get_experiments_df(session_id)
+    csv_string = df_experiments.to_csv(index=False, encoding='utf-8')
+    csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
+    return csv_string
