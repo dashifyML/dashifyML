@@ -32,12 +32,12 @@ def get_layout(gs_log_dir):
     return layout
 
 
-def render_download_button():
+def render_download_button(button_id, button_text, file_name):
     return html.Div([
         html.Br(),
-        html.A(html.Button("Download as .csv"),
-               id="download-exp-link",
-               download="experiments_data.csv",
+        html.A(html.Button(button_text),
+               id=button_id,
+               download=file_name,
                style={"display": "inline-block"})
     ], style={"text-align": "center"})
 
@@ -55,8 +55,7 @@ def render_content(tab, session_id, log_dir):
     elif tab == 'tab-table':
         return html.Div([
             render_table(session_id),
-            render_download_button()
+            render_download_button("download-exp-link", "Download as .csv", "experiments_data.csv")
         ])
     elif tab == 'tab-graphs':
-        pass
         return html.Div(children=render_graphs(session_id))
