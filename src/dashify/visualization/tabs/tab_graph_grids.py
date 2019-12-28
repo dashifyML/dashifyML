@@ -2,14 +2,12 @@ import dash_html_components as html
 import os
 from typing import List, Dict
 import operator
-from dashify.aggregation.aggregator import DataAggregator
 from functools import reduce
 from dashify.visualization.app import app
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 from dashify.visualization.controllers.data_controllers import GraphController, MetricsController, ExperimentController
 from dashify.visualization.plotting.utils import generate_marks, get_band_graph, get_line_graph
-from tqdm import tqdm
 import multiprocessing as mp
 from itertools import repeat
 from dashify.visualization import layout_definition
