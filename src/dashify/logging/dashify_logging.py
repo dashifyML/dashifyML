@@ -161,30 +161,39 @@ class DashifyLogger:
 
 
 class ExperimentTracking(object):
-    # def __init__(self):
-    #     pass
+    def __init__(self, log_to_file: bool = False):
+        self.log_to_file = log_to_file
 
-    def __call__(self, run_fun):
+    def __call__(self, run_fun, log_to_file: bool = True):
         @wraps(run_fun)
         def decorate_run(log_dir_path: str, run_id: str, config: Dict, device, subfolder_id: str):
             experiment_info = DashifyLogger.create_new_experiment(log_dir=log_dir_path,
                                                                   run_id=run_id,
                                                                   subfolder_id=subfolder_id,
                                                                   model_name=config["model"]["type"],
-                                                                  dataset_name=config["dataset"])
+                                                                  dataset_name=config["dataset"]["dataset_identifier"])
             DashifyLogger.save_config(config=config, experiment_info=experiment_info)
 
-            stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
-            stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
+            if self.log_to_file:
+                self.redirect_function_output(run_fun, config, device, experiment_info)
+            else:
+                self.run_fun_with_try_except(run_fun, config, device, experiment_info, file=None)
 
-            with open(stdout_file, 'w') as f_stdout:
-                with open(stderr_file, 'w') as f_stderr:
-                    with redirect_stdout(f_stdout):
-                        with redirect_stderr(f_stderr):
-                            try:
-                                run_fun(config, device, experiment_info)  # here we call the scripts run method
-                            except Exception as e:
-                                print(str(e), file=sys.stderr)
-                                traceback.print_tb(e.__traceback__, file=sys.stderr)
-            return
         return decorate_run
+
+    def redirect_function_output(self, run_fun, config: dict, device, experiment_info: ExperimentInfo):
+        stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
+        stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
+
+        with open(stdout_file, 'w') as f_stdout:
+            with open(stderr_file, 'w') as f_stderr:
+                with redirect_stdout(f_stdout):
+                    with redirect_stderr(f_stderr):
+                        self.run_fun_with_try_except(run_fun, config, device, experiment_info, file=sys.stderr)
+
+    def run_fun_with_try_except(self, run_fun, config: dict, device, experiment_info: ExperimentInfo, file=None):
+        try:
+            run_fun(config, device, experiment_info)  # here we call the scripts run method
+        except Exception as e:
+            traceback.print_exc(file=file)
+            traceback.print_tb(e.__traceback__, file=file)
