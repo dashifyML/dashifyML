@@ -19,7 +19,6 @@ def get_layout(gs_log_dir):
                          id="title-row")
     hidde_log_dir = html.Div(children=f"{gs_log_dir}", id="hidden-log-dir", style={'display': 'none'})
 
-
     layout = html.Div(children=[title_row,
                                 hidde_log_dir,
                                 html.Div(id='tabs-content'),
@@ -31,6 +30,17 @@ def get_layout(gs_log_dir):
                                 html.Div(id="hidden-div-placeholder-2", style={"display": "none"})
                                 ])
     return layout
+
+
+def render_download_button(button_id, button_text, file_name, href=None):
+    return html.Div([
+        html.Br(),
+        html.A(html.Button(button_text),
+               id=button_id,
+               download=file_name,
+               href=href,
+               style={"display": "inline-block"})
+    ], style={"text-align": "center"})
 
 
 @app.callback(Output('tabs-content', 'children'),
@@ -45,8 +55,8 @@ def render_content(tab, session_id, log_dir):
         ])
     elif tab == 'tab-table':
         return html.Div([
-            render_table(session_id)
+            render_table(session_id),
+            render_download_button("download-exp-link", "Download as .csv", "experiments_data.csv")
         ])
     elif tab == 'tab-graphs':
-        pass
         return html.Div(children=render_graphs(session_id))
