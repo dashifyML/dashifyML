@@ -12,13 +12,18 @@ from dashify.visualization.plotting.utils import generate_marks, get_band_graph,
 from tqdm import tqdm
 import multiprocessing as mp
 from itertools import repeat
+from dashify.visualization import layout_definition
+from flask import url_for
+from dashify.metrics.processor import MetricDataProcessor
 
 
 def render_graphs(session_id: str):
+    # graphs
     graphs = create_graphs(session_id)
     graph_groups = create_graph_groups(graphs)
     graph_content = html.Div(children=create_grids(graph_groups), id="graph-content")
 
+    # other layout elements
     interval = dcc.Interval(
         id='graph-interval-component',
         interval=1000 * 1000,  # in milliseconds
@@ -56,22 +61,22 @@ def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
     return tab_content
 
 
-# @app.callback(Output('graph-grids', 'children'),
-#               [Input('graph-interval-component', 'n_intervals')])
-# def update_metrics(n):
-#     return render_graphs(Settings.gs_log_dir)
-
-
 def create_html_graph_grid_from_group(graph_group: List[dcc.Graph], num_cols=3) -> html.Div:
-    def create_element(graph, i):
+    def build_download_url(graph_id):
+        return url_for("download_graph_data") + f"?graph_id={graph_id}"
+
+    def create_element(graph):
+        button_id = f"download-data-{graph.id}"
+
         return html.Div([
             graph,
-            html.Div([
-                html.Button("Download as .json", style={"display": "inline-block"})
-                ], style={"text-align": "center"}),
+            layout_definition.render_download_button(button_text="Download as .json",
+                                                     button_id=button_id,
+                                                     href=build_download_url(graph.id),
+                                                     file_name=f"{graph.id}.json")
         ], className="three columns", style={"width": "30%"})
 
-    elements = [create_element(graph, i) for i, graph in enumerate(graph_group)]
+    elements = [create_element(graph) for graph_id, graph in enumerate(graph_group)]
     rows = []
     row = []
     for i, element in enumerate(elements):
@@ -122,41 +127,13 @@ def create_graphs(session_id: str) -> List[dcc.Graph]:
 
 
 def create_graph_with_line_plot(session_id: str, metric_tag: str) -> dcc.Graph:
-    smoothing = GraphController.get_smoothing_factor(session_id)
-    experiment_ids = ExperimentController.get_experiment_ids(session_id)
-    metric_data = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_ids, [metric_tag])
-
-    def prepare_single_data_series(experiment_id: str) -> Dict:
-        data = metric_data[metric_data["experiment_id"] == experiment_id][metric_tag].values[0]
-        data = data if isinstance(data, list) else []
-        data = DataAggregator.smooth(data, smoothing)
-        dict_data = {
-            "experiment_id": experiment_id,
-            "data": data
-        }
-        return dict_data
-
-    series = []
-    for experiment_id in tqdm(experiment_ids):
-        series.append(prepare_single_data_series(experiment_id))
-
+    series = MetricDataProcessor.get_data(session_id, metric_tag)
     line_graph = get_line_graph(id=metric_tag, series=series, title=metric_tag)
     return line_graph
 
 
 def create_graph_with_bands(session_id: str, metric_tag: str) -> dcc.Graph:
-    smoothing = GraphController.get_smoothing_factor(session_id)
-    group_by_param = MetricsController.get_metric_setting_by_metric_tag(session_id, metric_tag, "Grouping parameter")
-    experiment_ids = ExperimentController.get_experiment_ids(session_id)
-    metric_data_df = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_ids)
-
-    def prepare_data(metric_tag: str) -> Dict:
-        aggregator = DataAggregator(experiments_df=metric_data_df, smoothing=smoothing)
-        data = aggregator.group_by_param(metric_tag, group_by_param)
-        return data
-
-    # aggregate data and get band graph
-    data_groups = prepare_data(metric_tag)
+    data_groups = MetricDataProcessor.get_aggregated_data(session_id, metric_tag)
     band_graph = get_band_graph(id=metric_tag, series_groups=data_groups, title=metric_tag)
     return band_graph
 
