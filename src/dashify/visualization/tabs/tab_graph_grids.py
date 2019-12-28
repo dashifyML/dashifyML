@@ -19,7 +19,7 @@ def render_graphs(session_id: str):
     # graphs
     graphs = create_graphs(session_id)
     graph_groups = create_graph_groups(graphs)
-    graph_content = html.Div(children=create_grids(graph_groups), id="graph-content")
+    graph_content = html.Div(children=create_grids(session_id, graph_groups), id="graph-content")
 
     # other layout elements
     interval = dcc.Interval(
@@ -48,8 +48,8 @@ def render_graphs(session_id: str):
     return tab_content
 
 
-def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
-    grids = [create_html_graph_grid_from_group(graph_group, num_cols=num_cols) for key, graph_group in
+def create_grids(session_id: str, graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
+    grids = [create_html_graph_grid_from_group(session_id, graph_group, num_cols=num_cols) for key, graph_group in
              graph_groups.items()]
     headlines = [html.H4(key.upper()) for key in graph_groups.keys()]
     if grids:
@@ -59,9 +59,10 @@ def create_grids(graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
     return tab_content
 
 
-def create_html_graph_grid_from_group(graph_group: List[dcc.Graph], num_cols=3) -> html.Div:
-    def build_download_url(graph_id):
-        return url_for("download_graph_data") + f"?graph_id={graph_id}"
+def create_html_graph_grid_from_group(session_id: str, graph_group: List[dcc.Graph], num_cols=3) -> html.Div:
+    def build_download_url(metric_tag):
+        to_aggregate = MetricsController.is_band_enabled_for_metric(session_id, metric_tag)
+        return url_for("download_graph_data") + f"?session_id={session_id}&&metric_tag={metric_tag}&&aggregate={to_aggregate}"
 
     def create_element(graph):
         button_id = f"download-data-{graph.id}"
@@ -145,4 +146,4 @@ def settings_callback(session_id, smoothing, interval):
     GraphController.set_smoothing_factor(session_id, smoothing)
     graphs = create_graphs(session_id)
     graph_groups = create_graph_groups(graphs)
-    return create_grids(graph_groups)
+    return create_grids(session_id, graph_groups)

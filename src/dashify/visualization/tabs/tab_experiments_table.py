@@ -3,7 +3,6 @@ import dash_table
 from dashify.visualization.app import app
 from dashify.visualization.controllers.data_controllers import ExperimentController
 import dash
-import urllib
 from flask import url_for
 
 

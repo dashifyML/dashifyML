@@ -32,12 +32,13 @@ def get_layout(gs_log_dir):
     return layout
 
 
-def render_download_button(button_id, button_text, file_name):
+def render_download_button(button_id, button_text, file_name, href=None):
     return html.Div([
         html.Br(),
         html.A(html.Button(button_text),
                id=button_id,
                download=file_name,
+               href=href,
                style={"display": "inline-block"})
     ], style={"text-align": "center"})
 
