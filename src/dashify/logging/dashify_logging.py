@@ -172,7 +172,7 @@ class ExperimentTracking(object):
             if self.log_to_file:
                 self.redirect_function_output(run_fun, config, device, experiment_info)
             else:
-                self.run_fun_with_try_except(run_fun, config, device, experiment_info, file=None)
+                self.run_fun_with_reraise(run_fun, config, device, experiment_info, file=None)
 
         return decorate_run
 
@@ -184,12 +184,13 @@ class ExperimentTracking(object):
             with open(stderr_file, 'w') as f_stderr:
                 with redirect_stdout(f_stdout):
                     with redirect_stderr(f_stderr):
-                        self.run_fun_with_try_except(run_fun, config, device, experiment_info, file=sys.stderr)
+                        self.run_fun_with_reraise(run_fun, config, device, experiment_info, file=sys.stderr)
 
-    def run_fun_with_try_except(self, run_fun, config: dict, device, experiment_info: ExperimentInfo, file=None):
+    def run_fun_with_reraise(self, run_fun, config: dict, device, experiment_info: ExperimentInfo, file=None):
         try:
             run_fun(config, device, experiment_info)  # here we call the scripts run method
         except Exception as e:
             print(e)
             # traceback.print_exc(file=file)
             traceback.print_tb(e.__traceback__, file=file)
+            raise e
