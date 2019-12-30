@@ -164,14 +164,9 @@ class ExperimentTracking(object):
     def __init__(self, log_to_file: bool = False):
         self.log_to_file = log_to_file
 
-    def __call__(self, run_fun, log_to_file: bool = True):
+    def __call__(self, run_fun):
         @wraps(run_fun)
-        def decorate_run(log_dir_path: str, run_id: str, config: Dict, device, subfolder_id: str):
-            experiment_info = DashifyLogger.create_new_experiment(log_dir=log_dir_path,
-                                                                  run_id=run_id,
-                                                                  subfolder_id=subfolder_id,
-                                                                  model_name=config["model"]["type"],
-                                                                  dataset_name=config["dataset"]["dataset_identifier"])
+        def decorate_run(config: Dict, device, experiment_info: ExperimentInfo = None):
             DashifyLogger.save_config(config=config, experiment_info=experiment_info)
 
             if self.log_to_file:
@@ -195,5 +190,6 @@ class ExperimentTracking(object):
         try:
             run_fun(config, device, experiment_info)  # here we call the scripts run method
         except Exception as e:
-            traceback.print_exc(file=file)
+            print(e)
+            # traceback.print_exc(file=file)
             traceback.print_tb(e.__traceback__, file=file)
