@@ -10,6 +10,8 @@ setup(
                               'visualization/assets/img/*.svg']
                   },
     install_requires=[
+        "pandas",
+        "tqdm",
         "dash",
         "dash-bootstrap-components",
         "dash_daq",
