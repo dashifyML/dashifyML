@@ -51,7 +51,8 @@ def render_content(tab, session_id, log_dir):
 
     if tab == 'tab-settings':
         return html.Div([
-            render_settings(session_id)
+            render_settings(session_id),
+            render_download_button("download-settings-link", "Download Settings as .json", "settings.json"),
         ])
     elif tab == 'tab-table':
         return html.Div([

@@ -6,6 +6,7 @@ from dash.dependencies import Input, Output
 from dashify.visualization.app import app
 import pandas as pd
 from dash import no_update
+from flask import url_for
 
 
 def render_settings(session_id: str):
@@ -128,3 +129,10 @@ def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
     df = pd.DataFrame(metric_rows, columns=[c['name'] for c in metric_colums])
     MetricsController.set_metrics_settings(session_id, df)
     return html.Div("")
+
+@app.callback(
+    Output('download-settings-link', "href"),
+    [Input("session-id", "children")])
+def update_download_link(session_id):
+    url = url_for("download_settings_data") + f"?session_id={session_id}" # TBD: Just session_id is sufficient, right?
+    return url

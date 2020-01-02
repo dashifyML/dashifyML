@@ -1,5 +1,5 @@
 import dash
-from dashify.visualization.controllers.data_controllers import ExperimentController
+from dashify.visualization.controllers.data_controllers import ExperimentController, MetricsController, ConfigController, GridSearchController
 from flask import request
 from dashify.metrics.processor import MetricDataProcessor
 
@@ -38,3 +38,13 @@ def download_graph_data():
         json_data = jsonify(MetricDataProcessor.get_data(session_id, metric_tag))
 
     return json_data
+
+@app.server.route("/download_settings_data")
+def download_settings_data():
+
+    session_id = request.args.get("session_id")
+
+    settings_dict = {}
+    settings_dict["config_settings"] = ConfigController.get_selected_configs_settings(session_id)
+    settings_dict["metric_settings"] = MetricsController.get_metrics_settings(session_id).to_dict()
+    return jsonify(settings_dict)
