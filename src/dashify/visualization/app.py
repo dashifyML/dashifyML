@@ -50,4 +50,5 @@ def download_settings_data():
     settings_dict["config_settings"] = ConfigController.get_selected_configs_settings(session_id)
     settings_dict["metric_settings"] = MetricsController.get_metrics_settings(session_id).to_dict()
     settings_dict["filter_settings"] = data_controllers.cache_controller.get_experiment_filters(grid_search_id, session_id)
+    settings_dict["experiments_raw_data"] = ExperimentController.get_experiments_df(session_id).to_dict()
     return jsonify(settings_dict)
