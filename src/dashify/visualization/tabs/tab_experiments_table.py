@@ -32,5 +32,5 @@ def update_table(filters, session_id):
     dash.dependencies.Output('download-exp-link', 'href'),
     [Input('table-filtering-be', "filter_query"), Input("session-id", "children")])
 def update_download_link(filters, session_id):
-    url = url_for("download_experiments_data") + f"?session_id={session_id}&&filters={filters}"
+    url = url_for("download_experiments_data", filters=filters)
     return url

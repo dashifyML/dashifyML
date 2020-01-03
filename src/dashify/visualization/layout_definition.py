@@ -7,7 +7,7 @@ from dashify.visualization.tabs.tab_settings import render_settings
 from dashify.visualization.app import app
 import uuid
 from dashify.visualization.controllers.data_controllers import GridSearchController
-
+import flask
 
 def get_layout(gs_log_dir):
     tabs = dcc.Tabs(id="tabs", value='tab-graphs', children=[
@@ -48,6 +48,9 @@ def render_download_button(button_id, button_text, file_name, href=None):
 def render_content(tab, session_id, log_dir):
     if GridSearchController.get_log_dir() is None:
         GridSearchController.set_log_dir(log_dir)
+
+    # set session_id in flask's session
+    flask.session["session_id"] = session_id
 
     if tab == 'tab-settings':
         return html.Div([

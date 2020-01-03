@@ -132,7 +132,7 @@ def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
 
 @app.callback(
     Output('download-analysis-link', "href"),
-    [Input("session-id", "children")])
-def update_download_link(session_id):
-    url = url_for("download_settings_data") + f"?session_id={session_id}" # TBD: Just session_id is sufficient, right?
+    [Input("session-id", "children"), Input('gs-dropdown', 'value')])
+def update_download_link(session_id, grid_search_id):
+    url = url_for("download_analysis_data", grid_search_id=grid_search_id)
     return url

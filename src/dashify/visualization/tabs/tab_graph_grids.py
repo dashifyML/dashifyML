@@ -13,7 +13,7 @@ from itertools import repeat
 from dashify.visualization import layout_definition
 from flask import url_for
 from dashify.metrics.processor import MetricDataProcessor
-
+import flask
 
 def render_graphs(session_id: str):
     # graphs
@@ -62,7 +62,7 @@ def create_grids(session_id: str, graph_groups: Dict[str, List[dcc.Graph]], num_
 def create_html_graph_grid_from_group(session_id: str, graph_group: List[dcc.Graph], num_cols=3) -> html.Div:
     def build_download_url(metric_tag):
         to_aggregate = MetricsController.is_band_enabled_for_metric(session_id, metric_tag)
-        return url_for("download_graph_data") + f"?session_id={session_id}&&metric_tag={metric_tag}&&aggregate={to_aggregate}"
+        return url_for("download_graph_data", session_id=session_id, metric_tag=metric_tag, aggregate=to_aggregate)
 
     def create_element(graph):
         button_id = f"download-data-{graph.id}"

@@ -3,22 +3,23 @@ from dashify.visualization.controllers.data_controllers import ExperimentControl
 from dashify.visualization.controllers import data_controllers
 from flask import request
 from dashify.metrics.processor import MetricDataProcessor
+import flask
+from flask import jsonify
+import uuid
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
 app.config.suppress_callback_exceptions = True
-from flask import jsonify
+app.server.secret_key = str(uuid.uuid4())
 
 
 @app.server.route('/download_experiments_data')
 def download_experiments_data():
 
-    # get session id and filters
-    session_id = request.args.get("session_id")
-    filters = request.args.get("filters")
+    # get session id
+    session_id = flask.session.get("session_id")
 
     # get experiments data
-    ExperimentController.set_experiment_filters(session_id, filters.split(" && "))
     df_experiments = ExperimentController.get_experiments_df(session_id)
     csv_string = df_experiments.to_csv(index=False, encoding='utf-8')
 
@@ -29,7 +30,7 @@ def download_experiments_data():
 def download_graph_data():
 
     # get session id and metric id
-    session_id = request.args.get("session_id")
+    session_id = flask.session.get("session_id")
     metric_tag = request.args.get("metric_tag")
     to_aggregate = request.args.get("aggregate")
 
@@ -40,15 +41,16 @@ def download_graph_data():
 
     return json_data
 
-@app.server.route("/download_settings_data")
-def download_settings_data():
-
-    session_id = request.args.get("session_id")
-    grid_search_id = GridSearchController.get_activated_grid_search_id(session_id)
+@app.server.route("/download_analysis_data")
+def download_analysis_data():
+    session_id = flask.session.get("session_id")
+    grid_search_id = request.args.get("grid_search_id")
 
     settings_dict = {}
+    settings_dict["grid_search_id"] = grid_search_id
     settings_dict["config_settings"] = ConfigController.get_selected_configs_settings(session_id)
     settings_dict["metric_settings"] = MetricsController.get_metrics_settings(session_id).to_dict()
     settings_dict["filter_settings"] = data_controllers.cache_controller.get_experiment_filters(grid_search_id, session_id)
-    settings_dict["experiments_raw_data"] = ExperimentController.get_experiments_df(session_id).to_dict()
-    return jsonify(settings_dict)
+    settings_dict["experiments_raw_data"] = data_controllers.cache_controller.get_gs_results(grid_search_id, session_id).to_pandas_dataframe().to_dict()
+    analysis = [settings_dict]
+    return jsonify(analysis)
