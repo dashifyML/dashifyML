@@ -4,10 +4,12 @@ from dashify.visualization.app import app
 from dashify.visualization.controllers.data_controllers import ExperimentController
 import dash
 from flask import url_for
-
+import pandas as pd
 
 def render_table(session_id: str):
     df_experiments = ExperimentController.get_experiments_df(session_id, aggregate=True)
+    df_experiments = apply_correct_visualization_values(df_experiments)
+
     filters = ExperimentController.get_experiment_filters_string(session_id)
     return dash_table.DataTable(
         id='table-filtering-be',
@@ -19,12 +21,21 @@ def render_table(session_id: str):
     )
 
 
+def apply_correct_visualization_values(df_experiments: pd.DataFrame):
+    # correctly render lists
+    list_columns = (df_experiments.applymap(type) == list).all()
+    list_columns = list_columns.index[list_columns].tolist()
+    for col in list_columns:
+        df_experiments[col] = df_experiments[col].apply(lambda l: str(l))
+    return df_experiments
+
 @app.callback(
     Output('table-filtering-be', "data"),
     [Input('table-filtering-be', "filter_query"), Input("session-id", "children")])
 def update_table(filters, session_id):
     ExperimentController.set_experiment_filters(session_id, filters.split(" && "))
     df_experiments = ExperimentController.get_experiments_df(session_id)
+    df_experiments = apply_correct_visualization_values(df_experiments)
     return df_experiments.to_dict('records')
 
 

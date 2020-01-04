@@ -1,5 +1,6 @@
 from dashify.visualization.controllers.cache_controller import cache_controller
 from dashify.visualization.controllers.cache_controller import ExperimentFilters
+import dashify.visualization.controllers.cell_data_types  as cell_data_types
 
 import pandas as pd
 from typing import List, Tuple
@@ -189,13 +190,8 @@ class ExperimentController:
 
     @staticmethod
     def _apply_experiment_filters(df_experiments: pd.DataFrame, df_selected_metrics: pd.DataFrame, filters: List[str]) -> pd.DataFrame:
-        def convert_filter_value(filter_value: str):
-            if filter_value is None:
-                return filter_value
-            if isinstance(filter_value, str) and filter_value.lower() in ["true", "false"]:
-                return filter_value.lower() == "true"
-            else:
-                return filter_value
+
+        col_data_types_dict = cell_data_types.infer_datatypes_for_columns(df_experiments)
 
         if filters:
             # we want to apply the filters on the aggregate metrics data
@@ -203,9 +199,13 @@ class ExperimentController:
             # filter the dataframe
             for filter_expression in filters:
                 col_name, operator, filter_value = ExperimentController._split_filter_expression(filter_expression)
-                filter_value = convert_filter_value(filter_value)
+                if col_name is None:
+                    continue
+                filter_value = cell_data_types.convert_string_to_supported_data_type(filter_value, col_data_types_dict[col_name])
                 if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
-                    # these operators match pandas series operator method names
+                    # the dataframe operators also allow for list-like objects which is why we need to wrap the filter_value in another list
+                    if col_data_types_dict[col_name] == cell_data_types.SupportedDataTypes.list_type:
+                        filter_value = [filter_value]
                     df_experiments_agg = df_experiments_agg.loc[getattr(df_experiments_agg[col_name], operator)(filter_value)]
                 elif operator == 'contains':
                     df_experiments_agg = df_experiments_agg.loc[df_experiments_agg[col_name].str.contains(filter_value)]
