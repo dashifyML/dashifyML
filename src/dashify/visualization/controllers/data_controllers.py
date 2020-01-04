@@ -189,12 +189,21 @@ class ExperimentController:
 
     @staticmethod
     def _apply_experiment_filters(df_experiments: pd.DataFrame, df_selected_metrics: pd.DataFrame, filters: List[str]) -> pd.DataFrame:
+        def convert_filter_value(filter_value: str):
+            if filter_value is None:
+                return filter_value
+            if filter_value.lower() in ["true", "false"]:
+                return filter_value.lower() == "true"
+            else:
+                return filter_value
+
         if filters:
             # we want to apply the filters on the aggregate metrics data
             df_experiments_agg = ExperimentController._apply_aggregation_functions(df_experiments, df_selected_metrics)
             # filter the dataframe
             for filter_expression in filters:
                 col_name, operator, filter_value = ExperimentController._split_filter_expression(filter_expression)
+                filter_value = convert_filter_value(filter_value)
                 if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
                     # these operators match pandas series operator method names
                     df_experiments_agg = df_experiments_agg.loc[getattr(df_experiments_agg[col_name], operator)(filter_value)]
