@@ -192,7 +192,7 @@ class ExperimentController:
         def convert_filter_value(filter_value: str):
             if filter_value is None:
                 return filter_value
-            if filter_value.lower() in ["true", "false"]:
+            if isinstance(filter_value, str) and filter_value.lower() in ["true", "false"]:
                 return filter_value.lower() == "true"
             else:
                 return filter_value
