@@ -14,12 +14,17 @@ def render_table(session_id: str):
     return dash_table.DataTable(
         id='table-filtering-be',
         columns=[
-            {"name": i, "id": i} for i in sorted(df_experiments.columns)
+            {"name": i, "id": i} for i in get_sorted_columns(list(df_experiments.columns))
         ],
         filter_action='custom',
         filter_query=' && '.join(filters)
     )
 
+def get_sorted_columns(columns: list):
+    columns.remove("experiment_id")
+    columns = sorted(columns)
+    columns = ["experiment_id"] + columns
+    return columns
 
 def apply_correct_visualization_values(df_experiments: pd.DataFrame):
     # correctly render lists
