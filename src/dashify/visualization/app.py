@@ -6,6 +6,7 @@ from dashify.metrics.processor import MetricDataProcessor
 import flask
 from flask import jsonify
 import uuid
+from dashify.visualization.data_export.analysis_file import AnalysisExporter
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__)
@@ -44,13 +45,12 @@ def download_graph_data():
 @app.server.route("/download_analysis_data")
 def download_analysis_data():
     session_id = flask.session.get("session_id")
-    grid_search_id = request.args.get("grid_search_id")
+    grid_search_id = request.args.get("grid_search_id") # TBD: do we need multiple grid searches here?
 
-    settings_dict = {}
-    settings_dict["grid_search_id"] = grid_search_id
-    settings_dict["config_settings"] = ConfigController.get_selected_configs_settings(session_id)
-    settings_dict["metric_settings"] = MetricsController.get_metrics_settings(session_id).to_dict()
-    settings_dict["filter_settings"] = data_controllers.cache_controller.get_experiment_filters(grid_search_id, session_id)
-    settings_dict["experiments_raw_data"] = data_controllers.cache_controller.get_gs_results(grid_search_id, session_id).to_pandas_dataframe().to_dict()
-    analysis = [settings_dict]
+    # grid search data
+    grid_search_data = AnalysisExporter.pack(session_id, grid_search_id)
+
+    # complete analysis data
+    analysis = []
+    analysis.append(grid_search_data)
     return jsonify(analysis)
