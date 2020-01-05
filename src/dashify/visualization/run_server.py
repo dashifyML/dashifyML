@@ -2,6 +2,7 @@ import argparse
 from dashify.visualization.app import app
 from dashify.visualization.layout_definition import get_layout
 from dashify.visualization.data_export.analysis_file import AnalysisExporter
+import uuid
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Visualize grid search experiments')
@@ -19,10 +20,14 @@ def parse_args():
 
 
 def run_server(gs_log_dir: str, analysis_file: str, port: int):
+
+    # session id
+    session_id = str(uuid.uuid4())
+
     # here, we unpack the analysis file 
     if analysis_file:
-        gs_log_dir = AnalysisExporter.unpack(analysis_file)
-    app.layout = get_layout(gs_log_dir)
+        gs_log_dir = AnalysisExporter.unpack(analysis_file, session_id)
+    app.layout = get_layout(gs_log_dir, session_id)
     app.run_server(debug=True, port=port)
 
 

@@ -1,5 +1,5 @@
 import dash
-from dashify.visualization.controllers.data_controllers import ExperimentController, MetricsController, ConfigController, GridSearchController
+from dashify.visualization.controllers.data_controllers import ExperimentController, GridSearchController
 from dashify.visualization.controllers import data_controllers
 from flask import request
 from dashify.metrics.processor import MetricDataProcessor
@@ -44,13 +44,10 @@ def download_graph_data():
 
 @app.server.route("/download_analysis_data")
 def download_analysis_data():
-    session_id = flask.session.get("session_id")
-    grid_search_id = request.args.get("grid_search_id") # TBD: do we need multiple grid searches here?
-
-    # grid search data
-    grid_search_data = AnalysisExporter.pack(session_id, grid_search_id)
-
-    # complete analysis data
-    analysis = []
-    analysis.append(grid_search_data)
-    return jsonify(analysis)
+    try:
+        session_id = flask.session.get("session_id")
+        grid_search_ids = GridSearchController.get_gridsearch_ids()
+        analysis_data = AnalysisExporter.pack(session_id, grid_search_ids)
+        return jsonify(analysis_data)
+    except Exception as e:
+        return jsonify(e)

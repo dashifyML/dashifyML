@@ -7,6 +7,7 @@ from dashify.visualization.app import app
 import pandas as pd
 from dash import no_update
 from flask import url_for
+import flask
 
 
 def render_settings(session_id: str):
@@ -30,7 +31,7 @@ def create_grid_search_dropdown(session_id: str):
 
 
 def create_configs_settings(session_id: str):
-    options = [{'label': key, 'value': key} for key in ConfigController.get_configs_settings(session_id)]
+    options = [{'label': key, 'value': key} for key in sorted(ConfigController.get_configs_settings(session_id))]
     selected_elements = ConfigController.get_selected_configs_settings(session_id)
     settings = html.Div(
         children=[html.H5("Configs"),
@@ -134,5 +135,5 @@ def settings_callback(selected_configs, session_id, metric_rows, metric_colums):
     Output('download-analysis-link', "href"),
     [Input("session-id", "children"), Input('gs-dropdown', 'value')])
 def update_download_link(session_id, grid_search_id):
-    url = url_for("download_analysis_data", grid_search_id=grid_search_id)
+    url = url_for("download_analysis_data")
     return url
