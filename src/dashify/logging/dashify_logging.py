@@ -166,7 +166,7 @@ class ExperimentTracking(object):
 
     def __call__(self, run_fun):
         @wraps(run_fun)
-        def decorate_run(config: Dict, device, experiment_info: ExperimentInfo = None):
+        def decorate_run(config: Dict, device: torch.device, experiment_info: ExperimentInfo = None):
             DashifyLogger.save_config(config=config, experiment_info=experiment_info)
 
             if self.log_to_file:
@@ -176,7 +176,7 @@ class ExperimentTracking(object):
 
         return decorate_run
 
-    def redirect_function_output(self, run_fun, config: dict, device, experiment_info: ExperimentInfo):
+    def redirect_function_output(self, run_fun, config: dict, device: torch.device, experiment_info: ExperimentInfo):
         stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
         stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
 
@@ -186,7 +186,7 @@ class ExperimentTracking(object):
                     with redirect_stderr(f_stderr):
                         self.run_fun_with_reraise(run_fun, config, device, experiment_info, file=sys.stderr)
 
-    def run_fun_with_reraise(self, run_fun, config: dict, device, experiment_info: ExperimentInfo, file=None):
+    def run_fun_with_reraise(self, run_fun, config: dict, device: torch.device, experiment_info: ExperimentInfo, file=None):
         try:
             run_fun(config, device, experiment_info)  # here we call the scripts run method
         except Exception as e:

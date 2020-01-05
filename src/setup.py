@@ -15,7 +15,9 @@ setup(
         "dash",
         "dash-bootstrap-components",
         "dash_daq",
-        "Flask-Caching"
+        "Flask-Caching",
+        "pandas",
+        "tqdm"
     ],
     python_requires=">=3.0",
     scripts=['starter_scripts/dashify-vis'],
