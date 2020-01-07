@@ -156,7 +156,8 @@ class MetricsSettings:
         self._metrics_settings_table["Selected"] = MetricsSettings._supported_selected_band_values[0]
         self._metrics_settings_table["Aggregation"] = MetricsSettings._supported_aggregation_function[0]
         self._metrics_settings_table["Std_band"] = MetricsSettings._supported_std_band_values[0]
-        self._metrics_settings_table["Grouping parameter"] = config_settings.get_all()[0]
+        self._metrics_settings_table["Grouping parameter 1"] = config_settings.get_all()[0]
+        self._metrics_settings_table["Grouping parameter 2"] = "None" # by default, let's make it to None
 
     @property
     def metrics_settings_table(self) -> pd.DataFrame:
