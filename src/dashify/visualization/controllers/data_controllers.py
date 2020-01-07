@@ -165,10 +165,10 @@ class ExperimentController:
         # set the columns of the gridsearch table
         df_experiments = ExperimentController._filter_columns(df_experiments, config_cols, metrics_cols)
         # apply aggregation function to the respective columns in the grid search table
-        # filter the respective experiment rows
-        df_experiments = ExperimentController._apply_experiment_filters(df_experiments, df_selected_metrics, experiment_filters)
         if aggregate:
             df_experiments = ExperimentController._apply_aggregation_functions(df_experiments, df_selected_metrics)
+        # filter the respective experiment rows
+        df_experiments = ExperimentController._apply_experiment_filters(df_experiments, df_selected_metrics, experiment_filters)
         return df_experiments
 
     @staticmethod
