@@ -165,10 +165,10 @@ class ExperimentController:
         # set the columns of the gridsearch table
         df_experiments = ExperimentController._filter_columns(df_experiments, config_cols, metrics_cols)
         # apply aggregation function to the respective columns in the grid search table
-        # filter the respective experiment rows
-        df_experiments = ExperimentController._apply_experiment_filters(df_experiments, df_selected_metrics, experiment_filters)
         if aggregate:
             df_experiments = ExperimentController._apply_aggregation_functions(df_experiments, df_selected_metrics)
+        # filter the respective experiment rows
+        df_experiments = ExperimentController._apply_experiment_filters(df_experiments, df_selected_metrics, experiment_filters)
         return df_experiments
 
     @staticmethod
@@ -190,18 +190,17 @@ class ExperimentController:
 
     @staticmethod
     def _apply_experiment_filters(df_experiments: pd.DataFrame, df_selected_metrics: pd.DataFrame, filters: List[str]) -> pd.DataFrame:
-
-        col_data_types_dict = cell_data_types.infer_datatypes_for_columns(df_experiments)
-
         if filters:
             # we want to apply the filters on the aggregate metrics data
             df_experiments_agg = ExperimentController._apply_aggregation_functions(df_experiments, df_selected_metrics)
+            col_data_types_dict = cell_data_types.infer_datatypes_for_columns(df_experiments_agg)
             # filter the dataframe
             for filter_expression in filters:
                 col_name, operator, filter_value = ExperimentController._split_filter_expression(filter_expression)
                 if col_name is None:
                     continue
-                filter_value = cell_data_types.convert_string_to_supported_data_type(filter_value, col_data_types_dict[col_name])
+                filter_value_datatype = cell_data_types.get_datatype(filter_value)
+                filter_value = cell_data_types.convert_value_to_supported_data_type(filter_value, filter_value_datatype)
                 if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
                     # the dataframe operators also allow for list-like objects which is why we need to wrap the filter_value in another list
                     if col_data_types_dict[col_name] == cell_data_types.SupportedDataTypes.list_type:
