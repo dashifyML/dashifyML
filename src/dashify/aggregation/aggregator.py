@@ -21,9 +21,12 @@ class DataAggregator:
         return grouped_dict
 
     def _pretty_name(self, group_by_params, param_values):
+        param_values = list(param_values) if isinstance(param_values, tuple) else list([param_values])
+        print(group_by_params, param_values)
         group_name = ""
         for param_name, param_value in zip(group_by_params, param_values):
-            group_name += f"{param_name}_{param_value}_"
+            print(param_name, param_value)
+            group_name += f"{param_name}={param_value}_"
         group_name = group_name[0:len(group_name)-1]
         return group_name
 
