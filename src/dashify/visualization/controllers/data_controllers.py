@@ -204,8 +204,9 @@ class ExperimentController:
                 if operator in ('eq', 'ne', 'lt', 'le', 'gt', 'ge'):
                     # the dataframe operators also allow for list-like objects which is why we need to wrap the filter_value in another list
                     if col_data_types_dict[col_name] == cell_data_types.SupportedDataTypes.list_type:
-                        filter_value = [filter_value]
-                    df_experiments_agg = df_experiments_agg.loc[getattr(df_experiments_agg[col_name], operator)(filter_value)]
+                        df_experiments_agg = df_experiments_agg[df_experiments_agg[col_name].apply(lambda value: filter_value == value)]
+                    else:
+                        df_experiments_agg = df_experiments_agg.loc[getattr(df_experiments_agg[col_name], operator)(filter_value)]
                 elif operator == 'contains':
                     df_experiments_agg = df_experiments_agg.loc[df_experiments_agg[col_name].str.contains(filter_value)]
                 elif operator == 'datestartswith':
