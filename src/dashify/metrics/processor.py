@@ -39,15 +39,22 @@ class MetricDataProcessor:
         """
         Gets aggregated data for all experiments
         """
-        smoothing = GraphController.get_smoothing_factor(session_id)
-        group_by_param = MetricsController.get_metric_setting_by_metric_tag(session_id, metric_tag, "Grouping parameter")
-        experiment_ids = ExperimentController.get_experiment_ids(session_id)
-        metric_data_df = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_ids)
 
         def prepare_data(metric_tag: str) -> Dict:
             aggregator = DataAggregator(experiments_df=metric_data_df, smoothing=smoothing)
-            data = aggregator.group_by_param(metric_tag, group_by_param)
+            data = aggregator.group_by_param(metric_tag, group_by_params)
             return data
+
+        smoothing = GraphController.get_smoothing_factor(session_id)
+        group_by_param_1 = MetricsController.get_metric_setting_by_metric_tag(session_id, metric_tag, "Grouping parameter 1")
+        group_by_param_2 = MetricsController.get_metric_setting_by_metric_tag(session_id, metric_tag, "Grouping parameter 2")
+        
+        group_by_params = [group_by_param_1]
+        if group_by_param_2 != "None":
+            group_by_params.append(group_by_param_2)
+        
+        experiment_ids = ExperimentController.get_experiment_ids(session_id)
+        metric_data_df = ExperimentController.get_experiment_data_by_experiment_id(session_id, experiment_ids)
 
         # aggregate data and get band graph
         data_groups = prepare_data(metric_tag)

@@ -60,7 +60,8 @@ def create_metrics_settings_table(session_id: str):
                 {'id': 'Selected', 'name': 'Selected', 'presentation': 'dropdown'},
                 {'id': 'Aggregation', 'name': 'Aggregation', 'presentation': 'dropdown'},
                 {'id': 'Std_band', 'name': 'Std_band', 'presentation': 'dropdown'},
-                {'id': 'Grouping parameter', 'name': 'Grouping parameter', 'presentation': 'dropdown'},
+                {'id': 'Grouping parameter 1', 'name': 'Grouping parameter 1', 'presentation': 'dropdown'},
+                {'id': 'Grouping parameter 2', 'name': 'Grouping parameter 2', 'presentation': 'dropdown'},
             ],
             editable=True,
             dropdown={
@@ -82,16 +83,22 @@ def create_metrics_settings_table(session_id: str):
                         for i in ["y", "n"]
                     ]
                 },
-                'Grouping parameter': {
+                'Grouping parameter 1': {
                     'options': [
                         {'label': i, 'value': i}
-                        for i in selected_configs
+                        for i in sorted(selected_configs)
+                    ]
+                },
+                'Grouping parameter 2': {
+                    'options': [
+                        {'label': i, 'value': i}
+                        for i in ["None"] + sorted(selected_configs)
                     ]
                 }
             }
         ),
         html.Div(id='table-dropdown-container')
-    ], className="five columns"
+    ], className="six columns"
     )
     return table
 
