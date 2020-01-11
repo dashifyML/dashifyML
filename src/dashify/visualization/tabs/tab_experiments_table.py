@@ -6,6 +6,7 @@ import dash
 from flask import url_for
 import pandas as pd
 
+
 def render_table(session_id: str):
     df_experiments = ExperimentController.get_experiments_df(session_id, aggregate=True)
     df_experiments = apply_correct_visualization_values(df_experiments)
@@ -14,17 +15,35 @@ def render_table(session_id: str):
     return dash_table.DataTable(
         id='table-filtering-be',
         columns=[
-            {"name": i, "id": i} for i in get_sorted_columns(list(df_experiments.columns))
+            {'name': i, 'id': i, 'hideable': True} for i in get_sorted_columns(list(df_experiments.columns))
         ],
         filter_action='custom',
-        filter_query=' && '.join(filters)
+        filter_query=' && '.join(filters),
+        sort_action="native",
+        sort_mode="multi",
+        style_cell={
+            'padding-left': '1em',
+            'padding-right': '1em',
+            'font-family': 'sans-serif',
+            'font-size': '0.8em'}
+        ,
+        style_table={
+            'overflowX': 'scroll'
+        },
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold',
+        },
+        style_as_list_view=True,
     )
+
 
 def get_sorted_columns(columns: list):
     columns.remove("experiment_id")
     columns = sorted(columns)
     columns = ["experiment_id"] + columns
     return columns
+
 
 def apply_correct_visualization_values(df_experiments: pd.DataFrame):
     # correctly render lists
@@ -33,6 +52,7 @@ def apply_correct_visualization_values(df_experiments: pd.DataFrame):
     for col in list_columns:
         df_experiments[col] = df_experiments[col].apply(lambda l: str(l))
     return df_experiments
+
 
 @app.callback(
     Output('table-filtering-be', "data"),

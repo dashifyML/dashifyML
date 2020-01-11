@@ -2,6 +2,11 @@
 body {
     margin: 0 !important;
 }
+
+th.dash-header div{
+    display: flex;
+}
+
 #title-row {
     background: #24292e;
     padding: 10px 0px 0px 10px;
@@ -43,7 +48,7 @@ body {
 }
 
 #table-metrics {
-padding-bottom:15px
+    padding-bottom:15px
 }
 
 #gs-dropdown {
@@ -58,6 +63,7 @@ padding-bottom:15px
 }
 
 #configs-metrics-row {
+    display: flex;
     padding-top: 40px;
 }
 
@@ -72,3 +78,18 @@ padding-bottom:15px
     font-size: 2em;
     line-height: 1.2
 }
+
+#Configs {
+    display: flex;
+    flex-direction: column;
+}
+
+.three-columns {
+    display: flex;
+    flex-direction: column;
+    margin-right: 2em;
+}
+
+/*.six-columns {*/
+/*    border: 5px red;*/
+/*}*/
