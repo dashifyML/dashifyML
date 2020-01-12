@@ -8,7 +8,7 @@ from functools import reduce
 
 def generate_marks(min, max, step):
     marks = {}
-    for i in np.arange(min, max + 1, step):
+    for i in np.linspace(min, max, int((max-min)/step)):
         if i % max == 0:
             marks[int(i)] = str(round(i, 2))
         else:
