@@ -1,10 +1,14 @@
 import numpy as np
 import plotly.graph_objs as go
-from plotly.colors import DEFAULT_PLOTLY_COLORS
 import dash_core_components as dcc
 from typing import List, Dict
 from functools import reduce
+import seaborn as sns
 
+def get_rgb_colors(n_colors):
+    color_palette = sns.color_palette("Set1", n_colors)
+    rgb_colors = [f"rgb({color[0] * 255}, {color[1] * 255}, {color[2] * 255})" for color in color_palette]
+    return rgb_colors
 
 def generate_marks(min, max, step):
     marks = {}
@@ -67,7 +71,8 @@ def get_std_figure(title, data_groups):
         return trace_data
 
     trace_data = list(
-        reduce(lambda x, y: x + get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), DEFAULT_PLOTLY_COLORS), []))
+        reduce(lambda x, y: x + get_band_traces(y[0][0], y[0][1], y[1]), zip(data_groups.items(), get_rgb_colors(len(data_groups))), []))
+    
     fig = go.Figure(data=trace_data, layout={
         'plot_bgcolor': '#ffffff',
         'showlegend': True
