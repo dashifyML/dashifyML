@@ -87,6 +87,19 @@ dashify-vis --logdir <your experiments root folder> --port <your port>
 
 Finally, open the URL `127.0.0.1:<your port>` in your browser.
 
+## Troubleshooting
+
+### QT binding issues
+In case you a facing 
+``` bash
+ImportError: Failed to import any qt binding
+```
+install the mesa-utils via
+
+``` bash
+sudo apt-get install mesa-utils
+```
+
 ## Architecture
 
 ## Contribute
