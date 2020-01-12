@@ -23,7 +23,7 @@ Please note, that Dashify is currently under heavy development, such that interf
 
 Create a dashify folder, cd into this folder and clone the repository 
 
-```
+``` bash
 mkdir dashify_repo
 cd dashify_repo
 git clone git@github.com:le1nux/dashify.git
@@ -31,7 +31,7 @@ git clone git@github.com:le1nux/dashify.git
 
 To install cd into the repository and install the package
 
-```
+``` bash
 cd dashify
 pip install src/
 ```
@@ -42,7 +42,7 @@ Tracking an experiment is easy as well, as shown in the Listing below.
 First, we have to create a config for our experiment. Then we create an ExperimentInfo object that contains the necessary abstract experiment information regarding the experiment like which model type to train or the base logging directory.
 Finally, we can get to run the training function. The `ExperimentTracking` decorator forwards all `stdout` and `stderr` output to a file inside the experiment folder. Additionally, it catches and logs all training routine exceptions, such that during grid search only failing experiment fails and not the entire grid search.
 
-```
+``` python
 from dashify.logging.dashify_logging import DashifyLogger, ExperimentTracking, ExperimentInfo
 
 # implement training routine
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
 To visualize experiments one just has to run the visualization tool directly from command line.
 
-```
+``` bash
 dashify-vis --logdir <your experiments root folder> --port <your port> 
 ```
 
