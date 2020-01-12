@@ -17,15 +17,14 @@ class DataAggregator:
         for param_name, param_group in grouped:
             data_series = param_group[metric_tag].values.tolist()
             data = [DataAggregator.smooth(data, self.smoothing) if isinstance(data, list) else [] for data in data_series]
-            grouped_dict[self._pretty_name(group_by_params, param_name)] = data
+            group_name = self._pretty_name(group_by_params, param_name)
+            grouped_dict[group_name] = data
         return grouped_dict
 
     def _pretty_name(self, group_by_params, param_values):
         param_values = list(param_values) if isinstance(param_values, tuple) else list([param_values])
-        print(group_by_params, param_values)
         group_name = ""
         for param_name, param_value in zip(group_by_params, param_values):
-            print(param_name, param_value)
             group_name += f"{param_name}={param_value}_"
         group_name = group_name[0:len(group_name)-1]
         return group_name
