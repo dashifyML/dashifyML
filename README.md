@@ -2,7 +2,20 @@
 
 A lightweight tool to manage your large scale machine leaning experiments. Dashify contains two individual components, namely a multiprocessing capable logging component and a web-based visualization component.
 
-Please note, that Dashify is currently under heavy development, such that interfaces are still likely to change in the future. Every change will be noted in each version's change log. 
+Please note, that Dashify is currently under heavy development, such that interfaces are still likely to change in the future. Nevertheless, every change will be noted in each version's change log. 
+
+## Key Features
+
+### Logging
+
+* Multiprocessing capable logging
+* Grid search support out of the box
+* ...
+### Visualization
+
+* Many tools for deep analysis, such as filtering, aggregation and grouping of metrics
+* Filtering of hyperparameters
+* ...
 
 ## Getting Started
 
@@ -24,10 +37,55 @@ pip install src/
 ```
 For the future, dashify will be easily installable directly from the pip repositories.
 
-### Track an experiment
+### Tracking an experiment
+Tracking an experiment is easy as well, as shown in the Listing below. 
+First, we have to create a config for our experiment. Then we create an ExperimentInfo object that contains the necessary abstract experiment information regarding the experiment like which model type to train or the base logging directory.
+Finally, we can get to run the training function. The `ExperimentTracking` decorator forwards all `stdout` and `stderr` output to a file inside the experiment folder. Additionally, it catches and logs all training routine exceptions, such that during grid search only failing experiment fails and not the entire grid search.
+
+```
+from dashify.logging.dashify_logging import DashifyLogger, ExperimentTracking, ExperimentInfo
+
+# implement training routine
+@ExperimentTracking(log_to_file=False)
+def run_training(config: Dict, device=None, experiment_info: ExperimentInfo = None):
+
+  # save the config to disk
+  DashifyLogger.save_config(config=config, experiment_info=experiment_info)
+
+  # Run the experiment
+  # Note that this block needs to be replaced by the proper training function later one. 
+  # Here we just wanted to show how the logging of a metric would work!
+  for i in range(config['lower'], config['upper'], config['step_size']):
+    # save metric to the metrics dictionary
+    metrics_dict = {'loop_metric' : [i]}
+    
+    # log this metric
+    DashifyLogger.log_metrics(experiment_info=experiment_info, metrics=metrics_dict)
+    
+    
+if __name__ == '__main__':
+  # define the config
+  config = {'lower':10, 'upper':20, 'step_size': 2}
+  # creates the necessary folders on disk and returns the experiment information
+  experiment_info = DashifyLogger.create_new_experiment(log_dir="dashify_logs",
+                                                        subfolder_id="grid_search_1",
+                                                        model_name="my_model_1",
+                                                        dataset_name="data_set_1",
+                                                        run_id=0)
+  # execute the training routine                                                   
+  run_training(config, "cpu", experiment_info)                                                      
+```
 
 
 ### Run the visualization tool
+
+To visualize experiments one just has to run the visualization tool directly from command line.
+
+```
+dashify-vis --logdir <your experiments root folder> --port <your port> 
+```
+
+Finally, open the URL `127.0.0.1:<your port>` in your browser.
 
 ## Architecture
 
@@ -37,7 +95,7 @@ We are always looking forward to more people getting involved with this project.
 
 ## The Team
 
-Dashify is developed by Rajkumar Ramamurthy, Max Lübbering, Lars Patrick Hillebrand and Thiago Bell. We are convinced that every machine learning training should easily analyzed no matter how complex it gets. Our story started in our everyday work at Fraunhofer IAIS, in which were troubled by all the training visualization tools out there. Each of them not giving us the flexibility, scalability that we actually think is needed. 
+Dashify is developed by Rajkumar Ramamurthy, Max Lübbering, Lars Patrick Hillebrand and Thiago Bell. Our story started in our everyday work at Fraunhofer IAIS, in which were troubled by all the training visualization tools out there. Each of them not giving us the flexibility, scalability that we actually think is needed. Nevetheless, we are convinced that every machine learning training should easily analyzed no matter how complex an algorithm or a grid search gets.
 
 This is why we started started the Dashify project and herewith, finally open sourced it. 
 
