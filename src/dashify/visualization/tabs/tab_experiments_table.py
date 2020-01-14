@@ -21,20 +21,6 @@ def render_table(session_id: str):
         filter_query=' && '.join(filters),
         sort_action="native",
         sort_mode="multi",
-        style_cell={
-            'padding-left': '1em',
-            'padding-right': '1em',
-            'font-family': 'sans-serif',
-            'font-size': '0.8em'}
-        ,
-        style_table={
-            'overflowX': 'scroll'
-        },
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold',
-        },
-        style_as_list_view=True,
     )
 
 

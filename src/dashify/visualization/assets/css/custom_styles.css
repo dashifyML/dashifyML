@@ -3,8 +3,29 @@ body {
     margin: 0 !important;
 }
 
+table {
+    font-family: sans-serif !important;
+    font-size: 0.8em !important;
+}
+
+th.dash-header {
+    font-weight: bold !important;
+    background-color: rgb(230, 230, 230) !important;
+    padding-left: 1em !important;
+    padding-right: 1em !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
 th.dash-header div{
     display: flex;
+}
+
+td, th{
+    padding-left: 1em !important;
+    padding-right: 1em !important;
+    border-left: none !important;
+    border-right: none !important;
 }
 
 #title-row {
@@ -90,6 +111,6 @@ th.dash-header div{
     margin-right: 2em;
 }
 
-/*.six-columns {*/
-/*    border: 5px red;*/
-/*}*/
+.dash-spreadsheet-container {
+    overflow-x: scroll;
+}

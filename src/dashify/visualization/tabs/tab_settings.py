@@ -96,23 +96,9 @@ def create_metrics_settings_table(session_id: str):
                     ]
                 }
             },
-            style_cell={
-                'padding-left': '1em',
-                'padding-right': '1em',
-                'font-family': 'sans-serif',
-                'font-size': '0.8em'}
-            ,
-            style_table={
-                'overflowX': 'scroll'
-            },
-            style_header={
-                'backgroundColor': 'rgb(230, 230, 230)',
-                'fontWeight': 'bold',
-            },
-            style_as_list_view=True,
         ),
         html.Div(id='table-dropdown-container')
-    ], className="six-columns"  # css class has no effect
+    ]
     )
     return table
 
