@@ -31,7 +31,7 @@ def apply_correct_visualization_values(df_experiments: pd.DataFrame):
     list_columns = (df_experiments.applymap(type) == list).all()
     list_columns = list_columns.index[list_columns].tolist()
     for col in list_columns:
-        df_experiments[col] = df_experiments[col].apply(lambda l: str(l))
+        df_experiments[col] = df_experiments[col].apply(lambda l: str(l).replace("'", '"'))
     return df_experiments
 
 @app.callback(
