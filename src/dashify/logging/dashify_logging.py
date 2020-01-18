@@ -8,6 +8,7 @@ import sys
 from contextlib import redirect_stderr, redirect_stdout
 import traceback
 from functools import wraps
+import dill as dill
 
 
 class ResourceLocker:
@@ -122,7 +123,7 @@ class DashifyLogger:
         experiment_folder = experiment_info.full_experiment_path
         model_path = os.path.join(experiment_folder, cls.model_name)
         model.clean_up()
-        torch.save(model, model_path)
+        torch.save(model, model_path, pickle_module=dill)
 
     @classmethod
     def load_model(cls, experiment_info: ExperimentInfo) -> nn.Module:

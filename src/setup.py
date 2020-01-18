@@ -17,7 +17,8 @@ setup(
         "dash_daq",
         "Flask-Caching",
         "pandas",
-        "tqdm"
+        "tqdm",
+        "dill"
     ],
     python_requires=">=3.0",
     scripts=['starter_scripts/dashify-vis'],
