@@ -46,7 +46,7 @@ def create_configs_settings(session_id: str):
 
 
 def create_metrics_settings_table(session_id: str):
-    agg_fun_list = ["min", "mean", "max"]
+    agg_fun_list = ["min", "mean", "max", "first", "last"]
     df_metrics_settings = MetricsController.get_metrics_settings(session_id)
     df_metrics_settings = df_metrics_settings.sort_values(by=["metrics"])
     selected_configs = ConfigController.get_selected_configs_settings(session_id)

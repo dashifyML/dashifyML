@@ -181,7 +181,7 @@ class ExperimentController:
     @staticmethod
     def _apply_aggregation_functions(df_experiments: pd.DataFrame, df_selected_metrics: pd.DataFrame):
         df_experiments = df_experiments.copy()
-        agg_fun_dict = {"mean": np.mean, "max": np.max, "min": np.min}
+        agg_fun_dict = {"mean": np.mean, "max": np.max, "min": np.min, "first": lambda x: np.take(x, 0), "last": lambda x: np.take(x, -1)} # TODO check why x is sometimes not a list!!!!
         for index, row in df_selected_metrics.iterrows():
             agg_fun_key = row["Aggregation"]
             agg_fun = agg_fun_dict[agg_fun_key]
