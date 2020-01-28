@@ -1,6 +1,6 @@
 # Dashify
 
-A lightweight tool to manage your large scale machine leaning experiments. Dashify contains two individual components, namely a multiprocessing capable logging component and a web-based visualization component.
+A lightweight tool to manage and track your large scale machine leaning experiments. Dashify contains two individual components, namely a multiprocessing capable logging component and a web-based visualization component.
 
 Please note, that Dashify is currently under heavy development, such that interfaces are still likely to change in the future. Nevertheless, every change will be noted in each version's change log. 
 
@@ -16,6 +16,12 @@ Please note, that Dashify is currently under heavy development, such that interf
 * Many tools for deep analysis, such as filtering, aggregation and grouping of metrics
 * Filtering of hyperparameters
 * ...
+
+### Exports
+
+* Download of plots as .png, .json
+* Download of consolidated experiment data as .csv
+* Export of the whole dashify analysis and reproduce, continue the analysis at any point later in a different machine too.
 
 ## Getting Started
 
