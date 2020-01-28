@@ -109,3 +109,6 @@ venv.bak/
 # VSCode
 .vscode/
 .history/
+
+# Mac stuff
+.DS_Store

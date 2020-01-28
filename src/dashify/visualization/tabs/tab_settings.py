@@ -13,7 +13,7 @@ import flask
 def render_settings(session_id: str):
     gs_dropdown = create_grid_search_dropdown(session_id)
     config_settings = html.Div(children=[create_configs_settings(session_id)], id="configs-wrapper")
-    metrics_settings_table =  html.Div(children=[create_metrics_settings_table(session_id)], id="metrics-wrapper")
+    metrics_settings_table = html.Div(children=[create_metrics_settings_table(session_id)], id="metrics-wrapper")
     log_dir_div = html.Div(children=f"analyzing {GridSearchController.get_log_dir()}", id="log-dir")
     log_dir_row = html.Div(children=[log_dir_div, gs_dropdown])
     content = html.Div(children=[html.Div([html.H3("What to track?"), log_dir_row], className="row"),
@@ -40,7 +40,7 @@ def create_configs_settings(session_id: str):
                       value=selected_elements,
                       id="Configs"
                   )],
-        className="three columns"
+        className="three-columns"
     )
     return settings
 
@@ -95,10 +95,10 @@ def create_metrics_settings_table(session_id: str):
                         for i in ["None"] + sorted(selected_configs)
                     ]
                 }
-            }
+            },
         ),
         html.Div(id='table-dropdown-container')
-    ], className="six columns"
+    ]
     )
     return table
 
