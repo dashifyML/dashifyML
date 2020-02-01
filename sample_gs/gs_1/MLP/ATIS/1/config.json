@@ -1,0 +1,1 @@
+{"dataset": "ATIS", "optimizer": {"lr": 1.0, "weight_decay": 0}, "model": {"type": "MLP", "layers": [100, 50, 2]}, "trainer": {"seed": 0, "epochs": 10, "batch_size": 10, "classification_loss": "cross_entropy", "sampling": true}, "gs_start_time": 1575045572}
