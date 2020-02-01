@@ -48,7 +48,7 @@ def render_graphs(session_id: str):
     return tab_content
 
 
-def create_grids(session_id: str, graph_groups: Dict[str, List[dcc.Graph]], num_cols=3):
+def create_grids(session_id: str, graph_groups: Dict[str, List[dcc.Graph]], num_cols=1):
     grids = [create_html_graph_grid_from_group(session_id, graph_group, num_cols=num_cols) for key, graph_group in
              graph_groups.items()]
     headlines = [html.H4(key.upper()) for key in graph_groups.keys()]
@@ -73,7 +73,7 @@ def create_html_graph_grid_from_group(session_id: str, graph_group: List[dcc.Gra
                                                      button_id=button_id,
                                                      href=build_download_url(graph.id),
                                                      file_name=f"{graph.id}.json")
-        ], className="three columns", style={"width": "30%"})
+        ], className="three columns", style={"width": "100%"})
 
     elements = [create_element(graph) for graph_id, graph in enumerate(graph_group)]
     rows = []

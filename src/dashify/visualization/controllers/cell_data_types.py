@@ -22,10 +22,13 @@ def is_number(value) -> bool:
     except ValueError:
         return False
 
+def is_string(value) -> bool:
+    return isinstance(value, str)
+
 
 def is_list(value) -> bool:
     try:
-        json.loads(str(value))
+        json.loads(str(value).replace("'", '"'))
         return True
     except Exception:
         return False

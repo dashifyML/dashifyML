@@ -18,7 +18,8 @@ setup(
         "Flask-Caching",
         "pandas",
         "tqdm",
-        "seaborn"
+        "seaborn",
+        "dill"
     ],
     python_requires=">=3.0",
     scripts=['starter_scripts/dashify-vis'],

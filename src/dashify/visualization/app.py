@@ -1,6 +1,5 @@
 import dash
 from dashify.visualization.controllers.data_controllers import ExperimentController, GridSearchController
-from dashify.visualization.controllers import data_controllers
 from flask import request
 from dashify.metrics.processor import MetricDataProcessor
 import flask
