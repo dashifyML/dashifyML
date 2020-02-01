@@ -1,0 +1,116 @@
+
+body {
+    margin: 0 !important;
+}
+
+table {
+    font-family: sans-serif !important;
+    font-size: 0.8em !important;
+}
+
+th.dash-header {
+    font-weight: bold !important;
+    background-color: rgb(230, 230, 230) !important;
+    padding-left: 1em !important;
+    padding-right: 1em !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+th.dash-header div{
+    display: flex;
+}
+
+td, th{
+    padding-left: 1em !important;
+    padding-right: 1em !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+#title-row {
+    background: #24292e;
+    padding: 10px 0px 0px 10px;
+}
+
+#dashify-logo {
+    background: #24292e;
+    width: 12%;
+    margin: 0 auto;
+    display: inline-block;
+}
+
+.tab--selected.jsx-2137964197{
+    background: #24292e !important;
+    border-bottom: 5px solid #fa9619 !important;
+    border-top: 0px solid #1975FA !important;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    padding: 30px;
+    color: white !important;
+
+}
+
+.tab.jsx-2137964197 {
+    font-weight: normal !important;
+    color: white !important;
+    background: #24292e !important;
+    padding: 30px;
+    border-left:0px !important;
+    border-right:0px !important;
+    border-top:0px !important;
+    padding-bottom: 1px;
+}
+
+#tabs-content {
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+#table-metrics {
+    padding-bottom:15px
+}
+
+#gs-dropdown {
+    width:20%;
+    display: inline-table;
+}
+
+#log-dir {
+    display: inline-table;
+    padding-right: 10px;
+    font-size: 1.3em;
+}
+
+#configs-metrics-row {
+    display: flex;
+    padding-top: 40px;
+}
+
+#tabs-parent {
+    display: inline-block;
+    margin-left:200px;
+}
+
+#tab-button-graphs, #tab-button-table, #tab-button-settings {
+    padding: 0;
+    margin-right: 100px;
+    font-size: 2em;
+    line-height: 1.2
+}
+
+#Configs {
+    display: flex;
+    flex-direction: column;
+}
+
+.three-columns {
+    display: flex;
+    flex-direction: column;
+    margin-right: 2em;
+}
+
+.dash-spreadsheet-container {
+    overflow-x: scroll;
+}
