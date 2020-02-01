@@ -4,6 +4,10 @@ A lightweight tool to manage and track your large scale machine leaning experime
 
 Please note, that DashifyML is currently under heavy development, such that interfaces are still likely to change in the future. Nevertheless, every change will be noted in each version's change log. 
 
+## Status
+
+Build status: [![CircleCI](https://circleci.com/gh/dashifyML/dashifyML/tree/master.svg?style=svg)](https://circleci.com/gh/dashifyML/dashifyML/tree/master)
+
 ## Key Features
 
 ### Logging
