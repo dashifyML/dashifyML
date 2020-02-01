@@ -1,8 +1,8 @@
-# Dashify
+# DashifyML
 
-A lightweight tool to manage and track your large scale machine leaning experiments. Dashify contains two individual components, namely a multiprocessing capable logging component and a web-based visualization component.
+A lightweight tool to manage and track your large scale machine leaning experiments. DashifyML contains two individual components, namely a multiprocessing capable logging component and a web-based visualization component.
 
-Please note, that Dashify is currently under heavy development, such that interfaces are still likely to change in the future. Nevertheless, every change will be noted in each version's change log. 
+Please note, that DashifyML is currently under heavy development, such that interfaces are still likely to change in the future. Nevertheless, every change will be noted in each version's change log. 
 
 ## Key Features
 
@@ -114,11 +114,11 @@ We are always looking forward to more people getting involved with this project.
 
 ## The Team
 
-Dashify is developed by Rajkumar Ramamurthy, Max Lübbering, Lars Patrick Hillebrand and Thiago Bell. Our story started in our everyday work at Fraunhofer IAIS, in which were troubled by all the training visualization tools out there. Each of them not giving us the flexibility, scalability that we actually think is needed. Nevetheless, we are convinced that every machine learning training should easily analyzed no matter how complex an algorithm or a grid search gets.
+DashifyML is developed by Rajkumar Ramamurthy, Max Lübbering, Lars Patrick Hillebrand and Thiago Bell. Our story started in our everyday work at Fraunhofer IAIS, in which were troubled by all the training visualization tools out there. Each of them not giving us the flexibility, scalability that we actually think is needed. Nevetheless, we are convinced that every machine learning training should easily analyzed no matter how complex an algorithm or a grid search gets.
 
-This is why we started started the Dashify project and herewith, finally open sourced it. 
+This is why we started started the DashifyML project and herewith, finally open sourced it. 
 
-We are confident that with Dashify the analysis of machine learning algorithms becomes a great deal easier. 
+We are confident that with DashifyML the analysis of machine learning algorithms becomes a great deal easier. 
 
 For contact, please drop us an email: TBD
 
