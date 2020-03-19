@@ -122,7 +122,6 @@ class DashifyLogger:
     def save_model(cls, model: nn.Module, experiment_info: ExperimentInfo):
         experiment_folder = experiment_info.full_experiment_path
         model_path = os.path.join(experiment_folder, cls.model_name)
-        model.clean_up()
         torch.save(model, model_path, pickle_module=dill)
 
     @classmethod
