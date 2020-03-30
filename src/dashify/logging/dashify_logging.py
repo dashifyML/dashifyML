@@ -1,5 +1,5 @@
 from multiprocessing import Lock
-from typing import Dict
+from typing import Dict, Any
 import os
 import json
 import torch
@@ -166,17 +166,14 @@ class ExperimentTracking(object):
 
     def __call__(self, run_fun):
         @wraps(run_fun)
-        def decorate_run(config: Dict, device: torch.device, experiment_info: ExperimentInfo = None):
-            DashifyLogger.save_config(config=config, experiment_info=experiment_info)
-
+        def decorate_run(experiment_info: ExperimentInfo, **fun_params: Dict[str, Any]):
             if self.log_to_file:
-                self.redirect_function_output(run_fun, config, device, experiment_info)
+                self.redirect_function_output(run_fun, fun_params, experiment_info)
             else:
-                self.run_fun_with_reraise(run_fun, config, device, experiment_info, file=None)
-
+                self.run_fun_with_reraise(run_fun, fun_params, file=None)
         return decorate_run
 
-    def redirect_function_output(self, run_fun, config: dict, device: torch.device, experiment_info: ExperimentInfo):
+    def redirect_function_output(self, run_fun, fun_params: Dict[str, Any], experiment_info: ExperimentInfo):
         stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
         stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
 
@@ -184,13 +181,12 @@ class ExperimentTracking(object):
             with open(stderr_file, 'w') as f_stderr:
                 with redirect_stdout(f_stdout):
                     with redirect_stderr(f_stderr):
-                        self.run_fun_with_reraise(run_fun, config, device, experiment_info, file=sys.stderr)
+                        self.run_fun_with_reraise(run_fun=run_fun, file=sys.stderr, fun_params=fun_params)
 
-    def run_fun_with_reraise(self, run_fun, config: dict, device: torch.device, experiment_info: ExperimentInfo, file=None):
+    def run_fun_with_reraise(self, run_fun, fun_params: Dict[str, Any], file=None):
         try:
-            run_fun(config, device, experiment_info)  # here we call the scripts run method
+            run_fun(**fun_params)  # here we call the scripts run method
         except Exception as e:
             print(e)
-            # traceback.print_exc(file=file)
             traceback.print_tb(e.__traceback__, file=file)
             raise e
