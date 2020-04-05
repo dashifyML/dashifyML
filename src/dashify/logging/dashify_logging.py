@@ -107,8 +107,8 @@ class DashifyLogger:
         cls._create_experiment_file(experiment_info, cls.metrics_name)
         std_out_path = os.path.join(experiment_info.full_experiment_path, cls.std_out_name)
         err_out_path = os.path.join(experiment_info.full_experiment_path, cls.err_out_name)
-        sys.stdout = open(std_out_path, 'w')
-        sys.stdout = open(err_out_path, 'w')
+        # sys.stdout = open(std_out_path, 'w')
+        # sys.stdout = open(err_out_path, 'w')
         return experiment_info
 
     @classmethod
@@ -174,14 +174,14 @@ class ExperimentTracking(object):
         return decorate_run
 
     def redirect_function_output(self, run_fun, fun_params: Dict[str, Any], experiment_info: ExperimentInfo):
-        stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
-        stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
+        # stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
+        # stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
 
-        with open(stdout_file, 'w') as f_stdout:
-            with open(stderr_file, 'w') as f_stderr:
-                with redirect_stdout(f_stdout):
-                    with redirect_stderr(f_stderr):
-                        self.run_fun_with_reraise(run_fun=run_fun, file=sys.stderr, fun_params=fun_params)
+        # with open(stdout_file, 'w') as f_stdout:
+        #     with open(stderr_file, 'w') as f_stderr:
+        #         with redirect_stdout(f_stdout):
+        #             with redirect_stderr(f_stderr):
+        self.run_fun_with_reraise(run_fun=run_fun, file=sys.stderr, fun_params=fun_params)
 
     def run_fun_with_reraise(self, run_fun, fun_params: Dict[str, Any], file=None):
         try:
