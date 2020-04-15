@@ -1,5 +1,5 @@
 from multiprocessing import Lock
-from typing import Dict, Any
+from typing import Dict, Any, List
 import os
 import json
 import torch
@@ -150,13 +150,13 @@ class DashifyLogger:
             json.dump({}, f)
 
     @staticmethod
-    def _merge_dictionaries(dict_1: Dict, dict_2: Dict) -> Dict:
+    def _merge_dictionaries(dict_1: Dict[str, List[Any]], dict_2: Dict[str, List[Any]]) -> Dict:
         merged = dict_1.copy()
         for key, value in dict_2.items():
             if key not in merged:
-                merged[key] = [dict_2[key]]
+                merged[key] = dict_2[key]
             else:
-                merged[key] = merged[key] + [dict_2[key]]
+                merged[key] = merged[key] + dict_2[key]
         return merged
 
 
