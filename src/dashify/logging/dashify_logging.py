@@ -161,27 +161,29 @@ class DashifyLogger:
 
 
 class ExperimentTracking(object):
-    def __init__(self, log_to_file: bool = False):
+    def __init__(self, experiment_info: ExperimentInfo, log_to_file: bool = False):
         self.log_to_file = log_to_file
+        self.experiment_info = experiment_info
 
     def __call__(self, run_fun):
         @wraps(run_fun)
-        def decorate_run(experiment_info: ExperimentInfo, **fun_params: Dict[str, Any]):
+        def decorate_run(**fun_params: Dict[str, Any]):
             if self.log_to_file:
-                self.redirect_function_output(run_fun, fun_params, experiment_info)
+                self.redirect_function_output(run_fun, fun_params, self.experiment_info)
             else:
                 self.run_fun_with_reraise(run_fun, fun_params, file=None)
+
         return decorate_run
 
     def redirect_function_output(self, run_fun, fun_params: Dict[str, Any], experiment_info: ExperimentInfo):
-        # stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
-        # stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
+        stdout_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.std_out_name)
+        stderr_file = os.path.join(experiment_info.full_experiment_path, DashifyLogger.err_out_name)
 
-        # with open(stdout_file, 'w') as f_stdout:
-        #     with open(stderr_file, 'w') as f_stderr:
-        #         with redirect_stdout(f_stdout):
-        #             with redirect_stderr(f_stderr):
-        self.run_fun_with_reraise(run_fun=run_fun, file=sys.stderr, fun_params=fun_params)
+        with open(stdout_file, 'w') as f_stdout:
+            with open(stderr_file, 'w') as f_stderr:
+                with redirect_stdout(f_stdout):
+                    with redirect_stderr(f_stderr):
+                        self.run_fun_with_reraise(run_fun=run_fun, file=sys.stderr, fun_params=fun_params)
 
     def run_fun_with_reraise(self, run_fun, fun_params: Dict[str, Any], file=None):
         try:
