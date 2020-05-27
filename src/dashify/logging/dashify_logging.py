@@ -170,11 +170,11 @@ class DashifyLogger:
         torch.save(model, model_path, pickle_module=dill)
 
     @classmethod
-    def load_model(cls, experiment_info: ExperimentInfo, measurement_id: int = 0) -> nn.Module:
+    def load_model(cls, experiment_info: ExperimentInfo, measurement_id: int, device: torch.device) -> nn.Module:
         experiment_folder = experiment_info.full_experiment_path
         model_path = os.path.join(experiment_folder, cls.model_folder,
                                   cls.model_name.replace("<id>", str(measurement_id)))
-        model = torch.load(model_path)
+        model = torch.load(model_path, map_location=device)
         return model
 
     @classmethod
