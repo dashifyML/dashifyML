@@ -4,6 +4,7 @@ import os
 import json
 import torch
 import torch.nn as nn
+from torch.optim.optimizer import Optimizer
 import sys
 from contextlib import redirect_stderr, redirect_stdout
 import traceback
@@ -110,8 +111,7 @@ class ExperimentInfo:
 class DashifyLogger:
     config_name = "config.json"
     metrics_name = "metrics.json"
-    model_name = "model_<id>.pickle"
-    model_folder = "models"
+    checkpoint_folder = "checkpoints"
     std_out_name = "stdout.txt"
     err_out_name = "errout.txt"
 
@@ -138,7 +138,6 @@ class DashifyLogger:
             raise Exception(f"Experiment is not present in {experiment_info.full_experiment_path}")
         return experiment_info
 
-
     @classmethod
     def save_config(cls, config: Dict, experiment_info: ExperimentInfo):
         experiment_folder = experiment_info.full_experiment_path
@@ -149,33 +148,31 @@ class DashifyLogger:
     @classmethod
     def save_dict(cls, file_name: str, config: Dict[str, Any], experiment_info: ExperimentInfo):
         experiment_folder = experiment_info.full_experiment_path
-        dict_path = os.path.join(experiment_folder, cls.model_folder, file_name)
+        dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, file_name)
         with open(dict_path, "w") as f:
             json.dump(config, f)
 
     @classmethod
     def load_dict(cls, file_name: str, experiment_info: ExperimentInfo) -> Dict[str, Any]:
         experiment_folder = experiment_info.full_experiment_path
-        dict_path = os.path.join(experiment_folder, cls.model_folder, file_name)
+        dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, file_name)
         with open(dict_path, "r") as f:
             d = json.load(f)
         return d
 
     @classmethod
-    def save_model(cls, model: nn.Module, experiment_info: ExperimentInfo, measurement_id: int):
+    def save_checkpoint_state_dict(cls, state_dict: Dict, name: str ,experiment_info: ExperimentInfo, measurement_id: int):
         experiment_folder = experiment_info.full_experiment_path
-        model_path = os.path.join(experiment_folder, cls.model_folder,
-                                  cls.model_name.replace("<id>", str(measurement_id)))
-        os.makedirs(os.path.dirname(model_path), exist_ok=True)  # creates intermediate folders
-        torch.save(model, model_path, pickle_module=dill)
+        state_dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, name + "_" + str(measurement_id) + ".pt")
+        os.makedirs(os.path.dirname(state_dict_path), exist_ok=True)  # creates intermediate folders
+        torch.save(state_dict, state_dict_path, pickle_module=dill)
 
     @classmethod
-    def load_model(cls, experiment_info: ExperimentInfo, measurement_id: int, device: torch.device) -> nn.Module:
+    def load_checkpoint_state_dict(cls, name: str, experiment_info: ExperimentInfo, measurement_id: int) -> Dict:
         experiment_folder = experiment_info.full_experiment_path
-        model_path = os.path.join(experiment_folder, cls.model_folder,
-                                  cls.model_name.replace("<id>", str(measurement_id)))
-        model = torch.load(model_path, map_location=device)
-        return model
+        state_dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, name + "_" + str(measurement_id) + ".pt")
+        state_dict = torch.load(state_dict_path)
+        return state_dict
 
     @classmethod
     def log_metrics(cls, metrics: Dict[str, List[float]], experiment_info: ExperimentInfo, measurement_id: int):
