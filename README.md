@@ -42,7 +42,7 @@ git clone https://github.com/dashifyML/dashifyML.git
 To install cd into the repository and install the package
 
 ``` bash
-cd dashify
+cd dashifyML
 pip install src/
 ```
 For the future, dashify will be easily installable directly from the pip repositories.
