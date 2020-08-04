@@ -36,7 +36,7 @@ Create a dashify folder, cd into this folder and clone the repository
 ``` bash
 mkdir dashify_repo
 cd dashify_repo
-git clone git@github.com:le1nux/dashify.git
+git clone https://github.com/dashifyML/dashifyML.git
 ```
 
 To install cd into the repository and install the package
