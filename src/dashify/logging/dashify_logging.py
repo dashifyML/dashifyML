@@ -218,9 +218,7 @@ class DashifyLogger:
                     merged[key] = merged[key][:measurement_id] + dict_2[key] + merged[key][
                                                                             measurement_id + len(dict_2[key]) - 1:]
                 else:  # if measurement ID is not provided, just append the new values to the existing values
-                    new_values = dict_2[key]
-                    new_values = [new_values] if not isinstance(new_values, list) else new_values
-                    merged[key].extend(new_values)
+                    merged[key].extend(dict_2[key])
         return merged
 
 
