@@ -23,4 +23,5 @@ setup(
     ],
     python_requires=">=3.0",
     scripts=['starter_scripts/dashify-vis'],
+    url="https://github.com/dashifyML/dashifyML"
 )
