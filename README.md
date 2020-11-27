@@ -31,6 +31,12 @@ Build status: [![CircleCI](https://circleci.com/gh/dashifyML/dashifyML/tree/mast
 
 ### Install
 
+#### Using pip
+```bash
+pip install dashifyML
+```
+
+#### Alternatively from source
 Create a dashify folder, cd into this folder and clone the repository 
 
 ``` bash
@@ -45,7 +51,6 @@ To install cd into the repository and install the package
 cd dashifyML
 pip install src/
 ```
-For the future, dashify will be easily installable directly from the pip repositories.
 
 ### Tracking an experiment
 Tracking an experiment is easy as well, as shown in the Listing below. 
