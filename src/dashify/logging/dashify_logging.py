@@ -175,7 +175,7 @@ class DashifyLogger:
         return state_dict
 
     @classmethod
-    def log_metrics(cls, metrics: Dict[str, List[float]], experiment_info: ExperimentInfo, measurement_id: int):
+    def log_metrics(cls, metrics: Dict[str, List[float]], experiment_info: ExperimentInfo, measurement_id: int = None):
         """ Logs a metrics dictionary to disc.
 
         :param metrics: Dictionary containing the metrics
@@ -210,11 +210,15 @@ class DashifyLogger:
         """
         merged = dict_1.copy()
         for key, value in dict_2.items():
-            if key not in merged:
+            if key not in merged:  # if logging for the first time
                 merged[key] = dict_2[key]
             else:
-                merged[key] = merged[key][:measurement_id] + dict_2[key] + merged[key][
-                                                                           measurement_id + len(dict_2[key]) - 1:]
+                # if measurement ID is provided
+                if measurement_id is not None:
+                    merged[key] = merged[key][:measurement_id] + dict_2[key] + merged[key][
+                                                                            measurement_id + len(dict_2[key]) - 1:]
+                else:  # if measurement ID is not provided, just append the new values to the existing values
+                    merged[key].extend(dict_2[key])
         return merged
 
 
