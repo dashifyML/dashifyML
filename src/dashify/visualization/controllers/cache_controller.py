@@ -23,7 +23,6 @@ class InMemoryCacheController:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             func(*args, **kwargs)
-
         return wrapper
 
     def invalidate_cache(self, grid_search_id: str, session_id: str):
@@ -147,7 +146,7 @@ class ConfigSettings:
 
 
 class MetricsSettings:
-    _supported_aggregation_function = ["max", "min", "mean"]
+    _supported_aggregation_function = ["last", "min", "mean", "max", "first"]
     _supported_std_band_values = ["n", "y"]
     _supported_selected_band_values = ["n", "y"]
 
