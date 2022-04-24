@@ -23,7 +23,6 @@ class InMemoryCacheController:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             func(*args, **kwargs)
-
         return wrapper
 
     def invalidate_cache(self, grid_search_id: str, session_id: str):
@@ -33,7 +32,7 @@ class InMemoryCacheController:
 
         # reload grid search results from disk
         gs_result = LocalDataLoader.get_grid_search_results(os.path.join(self.log_dir, grid_search_id))
-        config_dict = {key: True for key in gs_result.get_flattened_experiment_configs()}
+        config_dict = {key: False for key in gs_result.get_flattened_experiment_configs()}
         config_settings = ConfigSettings(config_dict)
         metrics_settings = MetricsSettings(tracked_metrics=gs_result.get_experiment_metrics(),
                                            config_settings=config_settings)
