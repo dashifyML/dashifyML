@@ -116,17 +116,19 @@ class DashifyLogger:
     err_out_name = "errout.txt"
 
     @classmethod
-    def create_new_experiment(cls, log_dir: str, subfolder_id: str, model_name: str, dataset_name: str,
-                              run_id: str) -> ExperimentInfo:
+    def get_experiment_info(cls, log_dir: str, subfolder_id: str, model_name: str, dataset_name: str, run_id: str) -> ExperimentInfo:
         experiment_info = ExperimentInfo(log_dir, subfolder_id, model_name, dataset_name, run_id)
+        return experiment_info
+
+    @classmethod
+    def save_experiment_info(cls, experiment_info: ExperimentInfo):
         experiment_info.create_folder_structure()
         cls._create_experiment_file(experiment_info, cls.config_name)
         cls._create_experiment_file(experiment_info, cls.metrics_name)
-        std_out_path = os.path.join(experiment_info.full_experiment_path, cls.std_out_name)
-        err_out_path = os.path.join(experiment_info.full_experiment_path, cls.err_out_name)
+        # std_out_path = os.path.join(experiment_info.full_experiment_path, cls.std_out_name)
+        # err_out_path = os.path.join(experiment_info.full_experiment_path, cls.err_out_name)
         # sys.stdout = open(std_out_path, 'w')
         # sys.stdout = open(err_out_path, 'w')
-        return experiment_info
 
     @classmethod
     def load_existing_experiment(cls, log_dir: str, subfolder_id: str, model_name: str, dataset_name: str,
@@ -153,6 +155,20 @@ class DashifyLogger:
             json.dump(config, f)
 
     @classmethod
+    def log_raw_experiment_message(cls, file_name: str, config: Dict[str, Any], experiment_info: ExperimentInfo):
+        experiment_folder = experiment_info.full_experiment_path
+        dict_path = os.path.join(experiment_folder, file_name)
+        with open(dict_path, "a") as f:
+            json.dump(config, f)
+
+    @classmethod
+    def log_raw_gs_message(cls, file_name: str, config: Dict[str, Any], experiment_info: ExperimentInfo):
+        experiment_folder = experiment_info.full_experiment_path
+        dict_path = os.path.join(experiment_folder, file_name)
+        with open(dict_path, "a") as f:
+            json.dump(config, f)
+
+    @classmethod
     def load_dict(cls, file_name: str, experiment_info: ExperimentInfo) -> Dict[str, Any]:
         experiment_folder = experiment_info.full_experiment_path
         dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, file_name)
@@ -161,7 +177,7 @@ class DashifyLogger:
         return d
 
     @classmethod
-    def save_checkpoint_state_dict(cls, state_dict: Dict, name: str ,experiment_info: ExperimentInfo, measurement_id: int):
+    def save_checkpoint_state_dict(cls, state_dict: Dict, name: str, experiment_info: ExperimentInfo, measurement_id: int):
         experiment_folder = experiment_info.full_experiment_path
         state_dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, name + "_" + str(measurement_id) + ".pt")
         os.makedirs(os.path.dirname(state_dict_path), exist_ok=True)  # creates intermediate folders
@@ -170,7 +186,8 @@ class DashifyLogger:
     @classmethod
     def load_checkpoint_state_dict(cls, name: str, experiment_info: ExperimentInfo, measurement_id: int) -> Dict:
         experiment_folder = experiment_info.full_experiment_path
-        state_dict_path = os.path.join(experiment_folder, cls.checkpoint_folder, name + "_" + str(measurement_id) + ".pt")
+        state_dict_path = os.path.join(experiment_folder, cls.checkpoint_folder,
+                                       name + "_" + str(measurement_id) + ".pt")
         state_dict = torch.load(state_dict_path)
         return state_dict
 
@@ -213,8 +230,7 @@ class DashifyLogger:
             if key not in merged:
                 merged[key] = dict_2[key]
             else:
-                merged[key] = merged[key][:measurement_id] + dict_2[key] + merged[key][
-                                                                           measurement_id + len(dict_2[key]) - 1:]
+                merged[key] = merged[key][:measurement_id] + dict_2[key] + merged[key][measurement_id + len(dict_2[key]) - 1:]
         return merged
 
 
