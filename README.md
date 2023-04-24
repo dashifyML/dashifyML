@@ -1,3 +1,6 @@
+![Dashify_logo](https://user-images.githubusercontent.com/47029859/148430962-3544d715-7ace-4565-ad4d-332f7912f97a.png)
+
+
 # DashifyML
 
 A lightweight tool to manage and track your large scale machine leaning experiments. DashifyML contains two individual components, namely a multiprocessing capable logging component and a web-based visualization component.
